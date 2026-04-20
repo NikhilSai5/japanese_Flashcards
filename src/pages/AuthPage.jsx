@@ -2,8 +2,14 @@ import { useState } from 'react';
 import { LoginForm } from '../components/LoginForm';
 import { SignupForm } from '../components/SignupForm';
 
-export function AuthPage() {
+export function AuthPage({ onAuthComplete }) {
   const [mode, setMode] = useState('login');
+
+  const handleAuthSuccess = () => {
+    if (onAuthComplete) {
+      onAuthComplete();
+    }
+  };
 
   return (
     <div className="auth-page">
@@ -14,9 +20,9 @@ export function AuthPage() {
         </div>
 
         {mode === 'login' ? (
-          <LoginForm onSwitchToSignup={() => setMode('signup')} />
+          <LoginForm onSwitchToSignup={() => setMode('signup')} onAuthSuccess={handleAuthSuccess} />
         ) : (
-          <SignupForm onSwitchToLogin={() => setMode('login')} />
+          <SignupForm onSwitchToLogin={() => setMode('login')} onAuthSuccess={handleAuthSuccess} />
         )}
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useFlashcards } from '../hooks/useFlashcards';
 import { useCardNavigation } from '../hooks/useCardNavigation';
 import { useSupabase } from '../hooks/useSupabase';
 import { useAuth } from '../hooks/useAuth';
+import { AuthPage } from '../pages/AuthPage';
 import '../index.css';
 
 function ProtectedApp() {
@@ -22,6 +23,7 @@ function ProtectedApp() {
     markIncorrect
   } = useCardNavigation(deck);
   const [localDeck, setLocalDeck] = useState(deck);
+  const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
     setLocalDeck(deck);
@@ -43,31 +45,49 @@ function ProtectedApp() {
   const handleMarkCard = async (isRight) => {
     const cardId = localDeck[currentIndex]?.id;
     if (cardId) {
-      try {
-        const { data: existing } = await db
-          .from('study_progress')
-          .select('id, correct_count, incorrect_count')
-          .eq('card_id', cardId)
-          .eq('user_id', authUser.id)
-          .maybeSingle();
+      if (authUser) {
+        // Save to Supabase for logged-in users
+        try {
+          const { data: existing } = await db
+            .from('study_progress')
+            .select('id, correct_count, incorrect_count')
+            .eq('card_id', cardId)
+            .eq('user_id', authUser.id)
+            .maybeSingle();
 
-        if (existing) {
-          await db.from('study_progress').update({
-            correct_count: existing.correct_count + (isRight ? 1 : 0),
-            incorrect_count: existing.incorrect_count + (isRight ? 0 : 1),
-            last_studied: new Date().toISOString()
-          }).eq('id', existing.id);
+          if (existing) {
+            await db.from('study_progress').update({
+              correct_count: existing.correct_count + (isRight ? 1 : 0),
+              incorrect_count: existing.incorrect_count + (isRight ? 0 : 1),
+              last_studied: new Date().toISOString()
+            }).eq('id', existing.id);
+          } else {
+            await db.from('study_progress').insert({
+              card_id: cardId,
+              user_id: authUser.id,
+              correct_count: isRight ? 1 : 0,
+              incorrect_count: isRight ? 0 : 1,
+              last_studied: new Date().toISOString()
+            });
+          }
+        } catch (err) {
+          console.error('Error saving progress:', err);
+        }
+      } else {
+        // Save to localStorage for guests
+        const guestProgress = JSON.parse(localStorage.getItem('guestProgress') || '{}');
+        if (guestProgress[cardId]) {
+          guestProgress[cardId].correct_count += isRight ? 1 : 0;
+          guestProgress[cardId].incorrect_count += isRight ? 0 : 1;
+          guestProgress[cardId].last_studied = new Date().toISOString();
         } else {
-          await db.from('study_progress').insert({
-            card_id: cardId,
-            user_id: authUser.id,
+          guestProgress[cardId] = {
             correct_count: isRight ? 1 : 0,
             incorrect_count: isRight ? 0 : 1,
             last_studied: new Date().toISOString()
-          });
+          };
         }
-      } catch (err) {
-        console.error('Error saving progress:', err);
+        localStorage.setItem('guestProgress', JSON.stringify(guestProgress));
       }
     }
 
@@ -106,10 +126,18 @@ function ProtectedApp() {
               <p>Minna no Nihongo · Lessons 1–12</p>
             </div>
             <div className="header-right">
-              <span className="user-name">{authUser?.user_metadata?.username || authUser?.email}</span>
-              <button onClick={handleLogout} className="logout-btn">
-                Logout
-              </button>
+              {authUser ? (
+                <>
+                  <span className="user-name">{authUser?.username || authUser?.email}</span>
+                  <button onClick={handleLogout} className="logout-btn">
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => setShowAuth(true)} className="logout-btn">
+                  Login / Sign Up
+                </button>
+              )}
             </div>
           </header>
 
@@ -212,6 +240,48 @@ function ProtectedApp() {
             </button>
           </div>
         </>
+      )}
+
+      {showAuth && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: '20px',
+            maxWidth: '400px',
+            width: '90%',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            position: 'relative'
+          }}>
+            <button
+              onClick={() => setShowAuth(false)}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                background: 'none',
+                border: 'none',
+                fontSize: '24px',
+                cursor: 'pointer'
+              }}
+            >
+              ✕
+            </button>
+            <AuthPage onAuthComplete={() => setShowAuth(false)} />
+          </div>
+        </div>
       )}
     </>
   );

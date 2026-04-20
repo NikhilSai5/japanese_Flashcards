@@ -3,7 +3,7 @@ import { AuthPage } from './pages/AuthPage';
 import ProtectedApp from './components/ProtectedApp';
 
 function App() {
-  const { authUser, loading } = useAuth();
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -14,7 +14,7 @@ function App() {
     );
   }
 
-  return authUser ? <ProtectedApp /> : <AuthPage />;
+  return <ProtectedApp />;
 }
 
 export default App;

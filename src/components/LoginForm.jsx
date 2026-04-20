@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
-export function LoginForm({ onSwitchToSignup }) {
+export function LoginForm({ onSwitchToSignup, onAuthSuccess }) {
   const { login, error: authError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,6 +23,11 @@ export function LoginForm({ onSwitchToSignup }) {
 
     if (!result.success) {
       setError(result.error);
+    } else {
+      // Call the success callback
+      if (onAuthSuccess) {
+        setTimeout(onAuthSuccess, 500);
+      }
     }
   };
 

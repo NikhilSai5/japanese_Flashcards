@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import { supabase } from '../config/supabase';
+import bcryptjs from 'bcryptjs';
 
 export const AuthContext = createContext(null);
 
@@ -9,48 +10,43 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setAuthUser(session.user);
+    // Check if user is already logged in (from localStorage)
+    const savedUser = localStorage.getItem('authUser');
+    if (savedUser) {
+      try {
+        setAuthUser(JSON.parse(savedUser));
+      } catch (err) {
+        console.error('Failed to parse saved user:', err);
       }
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setAuthUser(session.user);
-      } else {
-        setAuthUser(null);
-      }
-    });
-
-    return () => subscription?.unsubscribe();
+    }
+    setLoading(false);
   }, []);
 
   const signup = async (email, password, username) => {
     setError(null);
     try {
-      const { data, error: signupError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            username,
-            full_name: username,
-          },
-        },
-      });
+      // Hash password
+      const hashedPassword = await bcryptjs.hash(password, 10);
 
-      if (signupError) throw signupError;
+      // Insert into custom users table
+      const { data, error: insertError } = await supabase
+        .from('users')
+        .insert({
+          email,
+          username,
+          password: hashedPassword,
+          full_name: username,
+        })
+        .select()
+        .single();
 
-      // Wait a moment for the profile trigger to execute
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (insertError) throw insertError;
 
-      return { success: true, user: data.user };
+      // Set user as logged in and save to localStorage
+      setAuthUser(data);
+      localStorage.setItem('authUser', JSON.stringify(data));
+
+      return { success: true, user: data };
     } catch (err) {
       const errorMessage = err.message || 'Signup failed. Please try again.';
       console.error('Signup error:', err);
@@ -62,14 +58,24 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     setError(null);
     try {
-      const { data, error: loginError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      // Query custom users table
+      const { data, error: queryError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();
 
-      if (loginError) throw loginError;
-      setAuthUser(data.user);
-      return { success: true, user: data.user };
+      if (queryError || !data) throw new Error('User not found');
+
+      // Verify password
+      const passwordMatch = await bcryptjs.compare(password, data.password);
+      if (!passwordMatch) throw new Error('Invalid password');
+
+      // Set user as logged in and save to localStorage
+      setAuthUser(data);
+      localStorage.setItem('authUser', JSON.stringify(data));
+
+      return { success: true, user: data };
     } catch (err) {
       const errorMessage = err.message || 'Login failed. Please try again.';
       console.error('Login error:', err);
@@ -81,9 +87,8 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     setError(null);
     try {
-      const { error: logoutError } = await supabase.auth.signOut();
-      if (logoutError) throw logoutError;
       setAuthUser(null);
+      localStorage.removeItem('authUser');
       return { success: true };
     } catch (err) {
       const errorMessage = err.message || 'Logout failed';
