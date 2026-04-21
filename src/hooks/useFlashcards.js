@@ -69,6 +69,18 @@ export function useFlashcards() {
     }
   }, [lessons]);
 
+  const toggleActiveLesson = useCallback((lesson) => {
+    setActiveLessons(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(lesson)) {
+        newSet.delete(lesson);
+      } else {
+        newSet.add(lesson);
+      }
+      return newSet.size === 0 ? new Set([lesson]) : newSet;
+    });
+  }, []);
+
   return {
     allCards,
     lessons,
@@ -77,6 +89,7 @@ export function useFlashcards() {
     isLoading,
     error,
     setActiveLesson,
+    toggleActiveLesson,
     buildDeck
   };
 }
