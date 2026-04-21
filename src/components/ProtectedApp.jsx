@@ -185,19 +185,23 @@ function ProtectedApp() {
                 <span className="tap-hint">tap to reveal</span>
               </div>
               <div className="card-face back">
-                <span className="card-label">
-                  {isReversed ? 'Japanese' : 'English'}
-                </span>
-                <span className="card-lesson">L{currentCard?.lesson}</span>
-                <div className="card-en" style={isReversed ? { fontFamily: "'Noto Sans JP', sans-serif", fontSize: '2.5rem', fontWeight: '300' } : {}}>
-                  {isReversed ? currentCard?.jp : currentCard?.en}
-                </div>
-                <div className="card-note">
-                  {isReversed
-                    ? currentCard?.kanji ? `${currentCard.kanji}${currentCard.note ? ' · ' + currentCard.note : ''}` : currentCard?.note
-                    : currentCard?.note}
-                </div>
-                <span className="tap-hint">tap to flip back</span>
+                {isFlipped && (
+                  <>
+                    <span className="card-label">
+                      {isReversed ? 'Japanese' : 'English'}
+                    </span>
+                    <span className="card-lesson">L{currentCard?.lesson}</span>
+                    <div className="card-en" style={isReversed ? { fontFamily: "'Noto Sans JP', sans-serif", fontSize: '2.5rem', fontWeight: '300' } : {}}>
+                      {isReversed ? currentCard?.jp : currentCard?.en}
+                    </div>
+                    <div className="card-note">
+                      {isReversed
+                        ? currentCard?.kanji ? `${currentCard.kanji}${currentCard.note ? ' · ' + currentCard.note : ''}` : currentCard?.note
+                        : currentCard?.note}
+                    </div>
+                    <span className="tap-hint">tap to flip back</span>
+                  </>
+                )}
               </div>
             </div>
           </div>
