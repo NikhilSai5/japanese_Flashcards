@@ -9,7 +9,7 @@ import '../index.css';
 function ProtectedApp() {
   const db = useSupabase();
   const { authUser, logout } = useAuth();
-  const { allCards, lessons, activeLessons, deck, isLoading, error, setActiveLesson, toggleActiveLesson } = useFlashcards();
+  const { allCards, lessons, activeLessons, deck, isLoading, error, setActiveLesson, toggleActiveLesson, resetToLesson1 } = useFlashcards();
   const {
     currentIndex,
     correct,
@@ -147,6 +147,12 @@ function ProtectedApp() {
               onClick={() => setActiveLesson('all')}
             >
               All
+            </button>
+            <button
+              className="lesson-btn"
+              onClick={resetToLesson1}
+            >
+              Reset
             </button>
             {lessons.map((lesson) => (
               <button

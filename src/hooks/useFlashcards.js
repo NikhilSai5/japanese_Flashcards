@@ -81,6 +81,10 @@ export function useFlashcards() {
     });
   }, []);
 
+  const resetToLesson1 = useCallback(() => {
+    setActiveLessons(new Set([1]));
+  }, []);
+
   return {
     allCards,
     lessons,
@@ -90,6 +94,7 @@ export function useFlashcards() {
     error,
     setActiveLesson,
     toggleActiveLesson,
+    resetToLesson1,
     buildDeck
   };
 }
