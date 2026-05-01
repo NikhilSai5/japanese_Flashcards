@@ -20,7 +20,8 @@ function ProtectedApp() {
     flipCard,
     toggleReverse,
     markCorrect,
-    markIncorrect
+    markIncorrect,
+    reset
   } = useCardNavigation(deck);
   const [localDeck, setLocalDeck] = useState(deck);
   const [showAuth, setShowAuth] = useState(false);
@@ -247,6 +248,9 @@ function ProtectedApp() {
               onClick={toggleReverse}
             >
               ⇅ Reverse mode
+            </button>
+            <button className="reset-btn" onClick={reset}>
+              ↻ Reset
             </button>
           </div>
         </>
