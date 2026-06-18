@@ -3,6 +3,7 @@ import { useAuth } from './hooks/useAuth';
 import Navbar from './components/Navbar';
 import ProtectedApp from './components/ProtectedApp';
 import KanjiDashboard from './pages/KanjiDashboard';
+import GrammarPage from './pages/GrammarPage';
 
 function App() {
   const { loading } = useAuth();
@@ -23,6 +24,7 @@ function App() {
         <Routes>
           <Route path="/" element={<ProtectedApp />} />
           <Route path="/kanji" element={<KanjiDashboard />} />
+          <Route path="/grammar" element={<GrammarPage />} />
         </Routes>
       </main>
     </>

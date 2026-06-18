@@ -33,6 +33,14 @@ export default function Navbar() {
             <span className="navbar-link-jp">漢字</span>
             <span className="navbar-link-en">Kanji</span>
           </NavLink>
+          <NavLink
+            to="/grammar"
+            className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}
+            id="nav-grammar"
+          >
+            <span className="navbar-link-jp">文法</span>
+            <span className="navbar-link-en">Grammar</span>
+          </NavLink>
         </div>
 
         <div className="navbar-auth">
