@@ -25,7 +25,6 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 16px 40px;
   background-image:
     repeating-linear-gradient(0deg, transparent, transparent 31px, var(--border) 31px, var(--border) 32px);
   background-size: 100% 32px;
@@ -679,4 +678,1396 @@ header {
   }
 }
 
+/* ===========================
+   NAVBAR
+   =========================== */
+.navbar {
+  width: 100%;
+  background: rgba(245, 240, 232, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 2px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding: 0 24px;
+}
 
+.navbar-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  gap: 24px;
+}
+
+.navbar-brand h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.navbar-brand h1 span {
+  color: var(--red);
+  font-style: italic;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 4px;
+}
+
+.navbar-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  padding: 8px 20px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  position: relative;
+  border: 1.5px solid transparent;
+}
+
+.navbar-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--red);
+  transition: all 0.25s ease;
+  transform: translateX(-50%);
+}
+
+.navbar-link:hover {
+  background: rgba(26, 18, 8, 0.04);
+}
+
+.navbar-link:hover::after {
+  width: 60%;
+}
+
+.navbar-link.active {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.navbar-link.active::after {
+  width: 0;
+}
+
+.navbar-link-jp {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.2;
+  transition: color 0.2s;
+}
+
+.navbar-link.active .navbar-link-jp {
+  color: var(--paper);
+}
+
+.navbar-link-en {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: color 0.2s;
+}
+
+.navbar-link.active .navbar-link-en {
+  color: var(--border);
+}
+
+.navbar-auth {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-user {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.navbar-guest {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--border);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.navbar-logout-btn {
+  background: transparent;
+  border: 1.5px solid var(--red);
+  color: var(--red);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  border-radius: 2px;
+}
+
+.navbar-logout-btn:hover {
+  background: var(--red);
+  color: #fff;
+}
+
+/* Main Content */
+.main-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 16px 40px;
+}
+
+/* Vocab page header (replaces the old <header> in ProtectedApp) */
+.vocab-page-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.vocab-page-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.8rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.vocab-page-title span {
+  color: var(--red);
+  font-style: italic;
+}
+
+.vocab-page-subtitle {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* ===========================
+   KANJI DASHBOARD
+   =========================== */
+.kanji-dashboard {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* Kanji Loading */
+.kanji-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  gap: 16px;
+}
+
+.kanji-loading-char {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 4rem;
+  color: var(--ink);
+  animation: kanji-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes kanji-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.95); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.kanji-loading-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.kanji-loading-bar {
+  width: 200px;
+  height: 3px;
+  background: var(--cream);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.kanji-loading-bar-fill {
+  width: 40%;
+  height: 100%;
+  background: var(--red);
+  border-radius: 2px;
+  animation: loading-slide 1.2s ease-in-out infinite;
+}
+
+@keyframes loading-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(350%); }
+}
+
+/* Kanji Error */
+.kanji-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 80px 20px;
+  gap: 12px;
+}
+
+.kanji-error-icon {
+  font-size: 2.5rem;
+  color: var(--red);
+}
+
+.kanji-error-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem;
+  color: var(--ink);
+}
+
+.kanji-error-detail {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  max-width: 400px;
+  text-align: center;
+}
+
+/* Hero Stats */
+.kanji-hero {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin-bottom: 32px;
+  padding: 28px 20px;
+  background: #fff;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 4px 6px 0 var(--cream), 4px 6px 0 1px var(--border);
+}
+
+.kanji-hero-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.kanji-hero-number {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.2rem;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.kanji-hero-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+/* Toolbar */
+.kanji-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.kanji-search-wrapper {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.kanji-search-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 0.85rem;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.kanji-search {
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  padding: 10px 36px 10px 36px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--ink);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.kanji-search:focus {
+  outline: none;
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px rgba(26, 18, 8, 0.06);
+}
+
+.kanji-search::placeholder {
+  color: var(--border);
+}
+
+.kanji-search-clear {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 2px;
+  transition: color 0.15s;
+}
+
+.kanji-search-clear:hover {
+  color: var(--red);
+}
+
+.kanji-view-toggle {
+  display: flex;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.kanji-view-btn {
+  background: transparent;
+  border: none;
+  padding: 8px 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--muted);
+  transition: all 0.15s;
+}
+
+.kanji-view-btn:first-child {
+  border-right: 1.5px solid var(--border);
+}
+
+.kanji-view-btn.active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.kanji-view-btn:hover:not(.active) {
+  background: var(--cream);
+}
+
+/* Categories */
+.kanji-categories {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.kanji-cat-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  padding: 5px 12px;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  text-transform: capitalize;
+  transition: all 0.15s;
+  border-radius: 20px;
+}
+
+.kanji-cat-pill:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.kanji-cat-pill.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.kanji-cat-count {
+  font-size: 0.55rem;
+  opacity: 0.7;
+  background: rgba(0,0,0,0.08);
+  padding: 1px 5px;
+  border-radius: 10px;
+}
+
+.kanji-cat-pill.active .kanji-cat-count {
+  background: rgba(255,255,255,0.15);
+}
+
+/* Results info */
+.kanji-results-info {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+/* Kanji Grid */
+.kanji-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.kanji-card {
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  padding: 20px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.kanji-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--red);
+  transform: scaleX(0);
+  transition: transform 0.25s ease;
+}
+
+.kanji-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(26, 18, 8, 0.08);
+  border-color: var(--ink);
+}
+
+.kanji-card:hover::before {
+  transform: scaleX(1);
+}
+
+.kanji-card.selected {
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1);
+}
+
+.kanji-card-char {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 2.8rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--ink);
+  transition: transform 0.2s ease;
+}
+
+.kanji-card:hover .kanji-card-char {
+  transform: scale(1.08);
+}
+
+.kanji-card-meaning {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-align: center;
+  letter-spacing: 0.05em;
+  text-transform: capitalize;
+  line-height: 1.3;
+}
+
+.kanji-card-strokes {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--border);
+  letter-spacing: 0.05em;
+}
+
+.kanji-card-category-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.5rem;
+  color: var(--gold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(184, 134, 11, 0.08);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+/* Kanji List View */
+.kanji-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 32px;
+}
+
+.kanji-list-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.kanji-list-item:hover {
+  background: var(--cream);
+  border-color: var(--ink);
+}
+
+.kanji-list-item.selected {
+  border-color: var(--red);
+  background: rgba(192, 57, 43, 0.03);
+}
+
+.kanji-list-char {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--ink);
+  min-width: 50px;
+  text-align: center;
+}
+
+.kanji-list-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kanji-list-meaning {
+  font-family: 'DM Serif Display', serif;
+  font-size: 0.95rem;
+  color: var(--ink);
+  text-transform: capitalize;
+}
+
+.kanji-list-readings {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.kanji-list-on,
+.kanji-list-kun {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.kanji-list-on::before {
+  content: '音 ';
+  color: var(--red);
+}
+
+.kanji-list-kun::before {
+  content: '訓 ';
+  color: var(--gold);
+}
+
+/* Override the prefix since we include it in JSX */
+.kanji-list-on::before,
+.kanji-list-kun::before {
+  content: '';
+}
+
+.kanji-list-strokes {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.75rem;
+  color: var(--border);
+  min-width: 30px;
+  text-align: right;
+}
+
+/* Detail Overlay */
+.kanji-detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 18, 8, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 20px;
+  animation: fade-in 0.2s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.kanji-detail {
+  background: #fff;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 8px 12px 0 var(--cream), 8px 12px 0 2px var(--border);
+  position: relative;
+  animation: slide-up 0.3s ease;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.kanji-detail-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s;
+  z-index: 1;
+}
+
+.kanji-detail-close:hover {
+  color: var(--red);
+}
+
+.kanji-detail-header {
+  text-align: center;
+  padding: 40px 32px 24px;
+  border-bottom: 1.5px solid var(--border);
+  background: linear-gradient(180deg, var(--cream) 0%, #fff 100%);
+}
+
+.kanji-detail-char {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 5rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.kanji-detail-meaning-large {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.3rem;
+  color: var(--ink);
+  text-transform: capitalize;
+  margin-bottom: 4px;
+}
+
+.kanji-detail-level {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.kanji-detail-body {
+  padding: 24px 32px 32px;
+}
+
+.kanji-detail-section {
+  margin-bottom: 24px;
+}
+
+.kanji-detail-section:last-child {
+  margin-bottom: 0;
+}
+
+.kanji-detail-section h3 {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--cream);
+}
+
+.kanji-detail-readings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kanji-reading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kanji-reading-type {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 2px;
+  min-width: 50px;
+  text-align: center;
+}
+
+.kanji-reading-type.on {
+  background: rgba(192, 57, 43, 0.08);
+  color: var(--red);
+}
+
+.kanji-reading-type.kun {
+  background: rgba(184, 134, 11, 0.08);
+  color: var(--gold);
+}
+
+.kanji-reading-value {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+/* Example Box */
+.kanji-example-box {
+  background: var(--cream);
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  padding: 16px;
+  text-align: center;
+}
+
+.kanji-example-word {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 300;
+  color: var(--ink);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.kanji-example-reading {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.kanji-example-meaning {
+  font-family: 'DM Serif Display', serif;
+  font-size: 0.9rem;
+  color: var(--ink);
+  font-style: italic;
+}
+
+/* Empty State */
+.kanji-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px;
+  gap: 12px;
+}
+
+.kanji-empty-icon {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 3rem;
+  color: var(--border);
+}
+
+.kanji-empty-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+}
+
+/* ===========================
+   RESPONSIVE - NAVBAR
+   =========================== */
+@media (max-width: 600px) {
+  .navbar-inner {
+    height: auto;
+    padding: 12px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .navbar-brand h1 {
+    font-size: 1.1rem;
+  }
+
+  .navbar-link {
+    padding: 6px 14px;
+  }
+
+  .navbar-link-jp {
+    font-size: 0.8rem;
+  }
+
+  .navbar-auth {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Kanji responsive */
+  .kanji-hero {
+    gap: 20px;
+    padding: 20px 16px;
+  }
+
+  .kanji-hero-number {
+    font-size: 1.6rem;
+  }
+
+  .kanji-toolbar {
+    flex-direction: column;
+  }
+
+  .kanji-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+  }
+
+  .kanji-card-char {
+    font-size: 2.2rem;
+  }
+
+  .kanji-detail {
+    max-width: 100%;
+  }
+
+  .kanji-detail-char {
+    font-size: 3.5rem;
+  }
+}
+
+/* ===========================
+   KANJI FLASHCARD STUDY MODE
+   =========================== */
+
+/* Study Header */
+.kf-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 14px 18px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 2px 3px 0 var(--cream);
+}
+
+.kf-back-btn {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  padding: 6px 12px;
+  cursor: pointer;
+  letter-spacing: 0.06em;
+  transition: all 0.15s;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.kf-back-btn:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.kf-header-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kf-header-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.kf-header-sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.kf-header-score {
+  display: flex;
+  gap: 12px;
+}
+
+.kf-score-correct {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.kf-score-incorrect {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--red);
+  font-weight: 500;
+}
+
+/* Kanji Flashcard */
+.kf-card-wrapper {
+  perspective: 1000px;
+  width: 100%;
+  max-width: 520px;
+  height: 320px;
+  margin: 0 auto 24px;
+  cursor: pointer;
+}
+
+.kf-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.kf-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+
+.kf-card-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  box-shadow: 4px 6px 0 var(--cream), 4px 6px 0 1px var(--border);
+}
+
+.kf-front {
+  background: #fff;
+}
+
+.kf-back {
+  transform: rotateY(180deg);
+  background: var(--cream);
+}
+
+.kf-card-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+  position: absolute;
+  top: 14px;
+  left: 18px;
+}
+
+.kf-card-counter {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  color: var(--border);
+  position: absolute;
+  top: 14px;
+  right: 18px;
+}
+
+.kf-card-kanji {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 7rem;
+  font-weight: 300;
+  line-height: 1;
+  color: var(--ink);
+  margin-bottom: 8px;
+  transition: transform 0.2s ease;
+}
+
+.kf-card-wrapper:hover .kf-card-kanji {
+  transform: scale(1.03);
+}
+
+.kf-card-meaning-front {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  color: var(--ink);
+  text-align: center;
+  text-transform: capitalize;
+  line-height: 1.3;
+}
+
+.kf-card-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--border);
+  margin-top: 8px;
+}
+
+.kf-card-strokes-dots {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 120px;
+}
+
+.kf-stroke-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  opacity: 0.5;
+}
+
+.kf-tap-hint {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.58rem;
+  color: var(--border);
+  position: absolute;
+  bottom: 14px;
+  letter-spacing: 0.1em;
+}
+
+/* Back face details */
+.kf-back-meaning {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.8rem;
+  color: var(--ink);
+  text-align: center;
+  text-transform: capitalize;
+  margin-bottom: 16px;
+}
+
+.kf-back-readings {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.kf-reading-line {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.9rem;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kf-reading-badge {
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+.kf-reading-badge.on {
+  background: rgba(192, 57, 43, 0.1);
+  color: var(--red);
+}
+
+.kf-reading-badge.kun {
+  background: rgba(184, 134, 11, 0.1);
+  color: var(--gold);
+}
+
+.kf-back-example {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  margin-top: 4px;
+}
+
+.kf-example-word {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 300;
+  color: var(--ink);
+}
+
+.kf-example-reading {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.kf-example-meaning {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* Study Button */
+.kf-study-btn {
+  background: var(--ink);
+  border: 2px solid var(--ink);
+  color: var(--paper);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  padding: 8px 16px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.kf-study-btn:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.kf-study-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* Hero study shortcut */
+.kanji-hero-study {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  padding: 8px 16px;
+}
+
+.kanji-hero-study:hover {
+  background: var(--cream);
+  transform: translateY(-2px);
+}
+
+/* ===========================
+   COMPLETION SCREEN
+   =========================== */
+.kf-complete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  max-width: 480px;
+  margin: 0 auto;
+  background: #fff;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 4px 6px 0 var(--cream), 4px 6px 0 1px var(--border);
+}
+
+.kf-complete-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  animation: kf-bounce 0.6s ease;
+}
+
+@keyframes kf-bounce {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.kf-complete-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.6rem;
+  color: var(--ink);
+  margin-bottom: 24px;
+}
+
+.kf-complete-stats {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 20px;
+}
+
+.kf-complete-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.kf-complete-number {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.kf-complete-number.green {
+  color: #2e7d32;
+}
+
+.kf-complete-number.red {
+  color: var(--red);
+}
+
+.kf-complete-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.kf-complete-bar {
+  width: 100%;
+  max-width: 300px;
+  height: 6px;
+  background: var(--cream);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+
+.kf-complete-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red), #2e7d32);
+  border-radius: 3px;
+  transition: width 0.8s ease;
+  animation: kf-bar-grow 0.8s ease forwards;
+}
+
+@keyframes kf-bar-grow {
+  from { width: 0 !important; }
+}
+
+.kf-complete-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.kf-action-btn {
+  background: var(--ink);
+  border: 2px solid var(--ink);
+  color: var(--paper);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  padding: 10px 18px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: all 0.15s;
+  border-radius: 3px;
+}
+
+.kf-action-btn:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.kf-action-btn.secondary {
+  background: transparent;
+  color: var(--muted);
+  border-color: var(--border);
+}
+
+.kf-action-btn.secondary:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+/* ===========================
+   RESPONSIVE - KANJI FLASHCARDS
+   =========================== */
+@media (max-width: 600px) {
+  .kf-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .kf-header-score {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .kf-card-wrapper {
+    height: 280px;
+  }
+
+  .kf-card-kanji {
+    font-size: 5rem;
+  }
+
+  .kf-card-meaning-front {
+    font-size: 1.5rem;
+  }
+
+  .kf-back-meaning {
+    font-size: 1.4rem;
+  }
+
+  .kf-complete-stats {
+    gap: 20px;
+  }
+
+  .kf-complete-number {
+    font-size: 1.5rem;
+  }
+
+  .kf-complete-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .kf-action-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

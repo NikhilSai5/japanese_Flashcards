@@ -3,12 +3,11 @@ import { useFlashcards } from '../hooks/useFlashcards';
 import { useCardNavigation } from '../hooks/useCardNavigation';
 import { useSupabase } from '../hooks/useSupabase';
 import { useAuth } from '../hooks/useAuth';
-import { AuthPage } from '../pages/AuthPage';
 import '../index.css';
 
 function ProtectedApp() {
   const db = useSupabase();
-  const { authUser, logout } = useAuth();
+  const { authUser } = useAuth();
   const { allCards, lessons, activeLessons, deck, isLoading, error, setActiveLesson, toggleActiveLesson, resetToLesson1 } = useFlashcards();
   const {
     currentIndex,
@@ -24,7 +23,6 @@ function ProtectedApp() {
     reset
   } = useCardNavigation(deck);
   const [localDeck, setLocalDeck] = useState(deck);
-  const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
     setLocalDeck(deck);
@@ -37,10 +35,6 @@ function ProtectedApp() {
       [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
     }
     setLocalDeck(newDeck);
-  };
-
-  const handleLogout = async () => {
-    await logout();
   };
 
   const handleMarkCard = async (isRight) => {
@@ -121,26 +115,10 @@ function ProtectedApp() {
         </div>
       ) : (
         <>
-          <header>
-            <div className="header-left">
-              <h1>日本語 <span>Flash</span>cards</h1>
-              <p>Minna no Nihongo · Lessons 1–12</p>
-            </div>
-            <div className="header-right">
-              {authUser ? (
-                <>
-                  <span className="user-name">{authUser?.username || authUser?.email}</span>
-                  <button onClick={handleLogout} className="logout-btn">
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <button onClick={() => setShowAuth(true)} className="logout-btn">
-                  Login / Sign Up
-                </button>
-              )}
-            </div>
-          </header>
+          <div className="vocab-page-header">
+            <h2 className="vocab-page-title">語彙 <span>Vocabulary</span></h2>
+            <p className="vocab-page-subtitle">Minna no Nihongo · Lessons 1–12</p>
+          </div>
 
           <div className="controls">
             <button
@@ -254,48 +232,6 @@ function ProtectedApp() {
             </button>
           </div>
         </>
-      )}
-
-      {showAuth && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: '8px',
-            padding: '20px',
-            maxWidth: '400px',
-            width: '90%',
-            maxHeight: '90vh',
-            overflow: 'auto',
-            position: 'relative'
-          }}>
-            <button
-              onClick={() => setShowAuth(false)}
-              style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                background: 'none',
-                border: 'none',
-                fontSize: '24px',
-                cursor: 'pointer'
-              }}
-            >
-              ✕
-            </button>
-            <AuthPage onAuthComplete={() => setShowAuth(false)} />
-          </div>
-        </div>
       )}
     </>
   );

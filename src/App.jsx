@@ -1,6 +1,8 @@
+import { Routes, Route } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
-import { AuthPage } from './pages/AuthPage';
+import Navbar from './components/Navbar';
 import ProtectedApp from './components/ProtectedApp';
+import KanjiDashboard from './pages/KanjiDashboard';
 
 function App() {
   const { loading } = useAuth();
@@ -14,7 +16,17 @@ function App() {
     );
   }
 
-  return <ProtectedApp />;
+  return (
+    <>
+      <Navbar />
+      <main className="main-content">
+        <Routes>
+          <Route path="/" element={<ProtectedApp />} />
+          <Route path="/kanji" element={<KanjiDashboard />} />
+        </Routes>
+      </main>
+    </>
+  );
 }
 
 export default App;
