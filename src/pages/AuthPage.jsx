@@ -1,14 +1,17 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LoginForm } from '../components/LoginForm';
 import { SignupForm } from '../components/SignupForm';
 
 export function AuthPage({ onAuthComplete }) {
   const [mode, setMode] = useState('login');
+  const navigate = useNavigate();
 
   const handleAuthSuccess = () => {
     if (onAuthComplete) {
       onAuthComplete();
     }
+    navigate('/');
   };
 
   return (

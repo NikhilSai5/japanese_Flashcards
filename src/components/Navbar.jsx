@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Navbar() {
@@ -52,7 +52,9 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            <span className="navbar-guest">Guest</span>
+            <NavLink to="/login" className="navbar-login-btn" id="nav-login">
+              Login
+            </NavLink>
           )}
         </div>
       </div>

@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import ProtectedApp from './components/ProtectedApp';
 import KanjiDashboard from './pages/KanjiDashboard';
 import GrammarPage from './pages/GrammarPage';
+import { AuthPage } from './pages/AuthPage';
 
 function App() {
   const { loading } = useAuth();
@@ -25,6 +26,7 @@ function App() {
           <Route path="/" element={<ProtectedApp />} />
           <Route path="/kanji" element={<KanjiDashboard />} />
           <Route path="/grammar" element={<GrammarPage />} />
+          <Route path="/login" element={<AuthPage />} />
         </Routes>
       </main>
     </>

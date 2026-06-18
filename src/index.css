@@ -829,6 +829,25 @@ header {
   color: #fff;
 }
 
+.navbar-login-btn {
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  padding: 6px 14px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: all 0.15s;
+  border-radius: 2px;
+}
+
+.navbar-login-btn:hover {
+  background: var(--red);
+  color: #fff;
+}
+
 /* Main Content */
 .main-content {
   width: 100%;
