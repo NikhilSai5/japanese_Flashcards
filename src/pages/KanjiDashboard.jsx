@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useKanji } from '../hooks/useKanji';
 
 export default function KanjiDashboard() {
@@ -28,6 +28,8 @@ export default function KanjiDashboard() {
   const [correct, setCorrect] = useState(0);
   const [incorrect, setIncorrect] = useState(0);
   const [studyComplete, setStudyComplete] = useState(false);
+  const [missedCards, setMissedCards] = useState([]);
+  const missedCardsRef = useRef([]);
 
   // When switching to study mode, build the deck from the current filtered list
   const startStudy = useCallback(() => {
@@ -39,6 +41,8 @@ export default function KanjiDashboard() {
     setCorrect(0);
     setIncorrect(0);
     setStudyComplete(false);
+    setMissedCards([]);
+    missedCardsRef.current = [];
     setView('study');
   }, [kanjiList]);
 
@@ -85,8 +89,13 @@ export default function KanjiDashboard() {
 
   const markIncorrect = useCallback(() => {
     setIncorrect(prev => prev + 1);
+    const current = deck[currentIndex];
+    if (current && !missedCardsRef.current.find(c => c.id === current.id)) {
+      missedCardsRef.current = [...missedCardsRef.current, current];
+      setMissedCards([...missedCardsRef.current]);
+    }
     nextCard();
-  }, [nextCard]);
+  }, [nextCard, deck, currentIndex]);
 
   const resetStudy = useCallback(() => {
     setCurrentIndex(0);
@@ -94,6 +103,21 @@ export default function KanjiDashboard() {
     setCorrect(0);
     setIncorrect(0);
     setStudyComplete(false);
+    setMissedCards([]);
+    missedCardsRef.current = [];
+  }, []);
+
+  const studyMissed = useCallback(() => {
+    const missed = missedCardsRef.current;
+    if (missed.length === 0) return;
+    setDeck([...missed]);
+    setCurrentIndex(0);
+    setIsFlipped(false);
+    setCorrect(0);
+    setIncorrect(0);
+    setStudyComplete(false);
+    setMissedCards([]);
+    missedCardsRef.current = [];
   }, []);
 
   const toggleReverse = useCallback(() => {
@@ -185,11 +209,25 @@ export default function KanjiDashboard() {
             <div className="kf-complete-bar">
               <div className="kf-complete-bar-fill" style={{ width: `${pctCorrect}%` }}></div>
             </div>
+
+            {missedCardsRef.current.length === 0 && (
+              <div className="kf-perfect">
+                <span className="kf-perfect-emoji">🌟</span>
+                <span className="kf-perfect-text">Perfect! No missed cards!</span>
+              </div>
+            )}
+
             <div className="kf-complete-actions">
               <button className="kf-action-btn" onClick={resetStudy}>↻ Study Again</button>
-              <button className="kf-action-btn" onClick={shuffleDeck}>⇄ Shuffle & Retry</button>
+              <button className="kf-action-btn" onClick={shuffleDeck}>⇄ Shuffle &amp; Retry</button>
               <button className="kf-action-btn secondary" onClick={() => setView('browse')}>← Back to Browse</button>
             </div>
+
+            {missedCardsRef.current.length > 0 && (
+              <button className="kf-action-btn kf-study-missed-btn" onClick={studyMissed}>
+                🔁 Review Wrong Cards ({missedCardsRef.current.length})
+              </button>
+            )}
           </div>
         </div>
       );

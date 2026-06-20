@@ -9,11 +9,15 @@ function ProtectedApp() {
   const db = useSupabase();
   const { authUser } = useAuth();
   const { allCards, lessons, activeLessons, deck, isLoading, error, setActiveLesson, toggleActiveLesson, resetToLesson1 } = useFlashcards();
+  const [localDeck, setLocalDeck] = useState([]);
   const {
     currentIndex,
     correct,
+    incorrect,
     isFlipped,
     isReversed,
+    sessionComplete,
+    getMissedDeck,
     nextCard,
     prevCard,
     flipCard,
@@ -21,8 +25,7 @@ function ProtectedApp() {
     markCorrect,
     markIncorrect,
     reset
-  } = useCardNavigation(deck);
-  const [localDeck, setLocalDeck] = useState(deck);
+  } = useCardNavigation(localDeck);
 
   useEffect(() => {
     setLocalDeck(deck);
@@ -35,6 +38,14 @@ function ProtectedApp() {
       [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
     }
     setLocalDeck(newDeck);
+    reset();
+  };
+
+  const handleReviewWrong = () => {
+    const missed = getMissedDeck();
+    if (missed.length === 0) return;
+    setLocalDeck([...missed]);
+    reset();
   };
 
   const handleMarkCard = async (isRight) => {
@@ -148,89 +159,134 @@ function ProtectedApp() {
             {localDeck.length} cards · {correct} correct this session
           </div>
 
-          <div className="card-wrapper" onClick={flipCard}>
-            <div className={`card-inner ${isFlipped ? 'flipped' : ''}`}>
-              <div className="card-face front">
-                <span className="card-label">
-                  {isReversed ? 'English' : 'Japanese'}
-                </span>
-                <span className="card-lesson">L{currentCard?.lesson}</span>
-                <div className="card-jp" style={isReversed ? { fontFamily: "'DM Serif Display', serif", fontSize: '1.9rem' } : {}}>
-                  {isReversed ? currentCard?.en : currentCard?.jp}
+          {sessionComplete ? (
+            /* ── Completion Screen ── */
+            <div className="vocab-complete">
+              <div className="vocab-complete-icon">🎉</div>
+              <h2 className="vocab-complete-title">Session Complete!</h2>
+              <div className="vocab-complete-stats">
+                <div className="vocab-complete-stat">
+                  <span className="vocab-complete-number green">{correct}</span>
+                  <span className="vocab-complete-label">Correct</span>
                 </div>
-                <div className="card-kanji">
-                  {isReversed ? '' : currentCard?.kanji}
+                <div className="vocab-complete-stat">
+                  <span className="vocab-complete-number red">{incorrect}</span>
+                  <span className="vocab-complete-label">Incorrect</span>
                 </div>
-                <span className="tap-hint">tap to reveal</span>
+                <div className="vocab-complete-stat">
+                  <span className="vocab-complete-number">
+                    {correct + incorrect > 0 ? Math.round((correct / (correct + incorrect)) * 100) : 0}%
+                  </span>
+                  <span className="vocab-complete-label">Accuracy</span>
+                </div>
               </div>
-              <div className="card-face back">
-                {isFlipped && (
-                  <>
+
+              {getMissedDeck().length === 0 && (
+                <div className="vocab-perfect">
+                  <span>🌟</span>
+                  <span>Perfect! No missed cards!</span>
+                </div>
+              )}
+
+              <div className="vocab-complete-actions">
+                <button className="kf-action-btn" onClick={reset}>↻ Study Again</button>
+                <button className="kf-action-btn" onClick={handleShuffle}>⇄ Shuffle &amp; Retry</button>
+              </div>
+
+              {getMissedDeck().length > 0 && (
+                <button className="kf-action-btn kf-study-missed-btn" onClick={handleReviewWrong}>
+                  🔁 Review Wrong Cards ({getMissedDeck().length})
+                </button>
+              )}
+            </div>
+          ) : (
+            /* ── Active Study ── */
+            <>
+              <div className="card-wrapper" onClick={flipCard}>
+                <div className={`card-inner ${isFlipped ? 'flipped' : ''}`}>
+                  <div className="card-face front">
                     <span className="card-label">
-                      {isReversed ? 'Japanese' : 'English'}
+                      {isReversed ? 'English' : 'Japanese'}
                     </span>
                     <span className="card-lesson">L{currentCard?.lesson}</span>
-                    <div className="card-en" style={isReversed ? { fontFamily: "'Noto Sans JP', sans-serif", fontSize: '2.5rem', fontWeight: '300' } : {}}>
-                      {isReversed ? currentCard?.jp : currentCard?.en}
+                    <div className="card-jp" style={isReversed ? { fontFamily: "'DM Serif Display', serif", fontSize: '1.9rem' } : {}}>
+                      {isReversed ? currentCard?.en : currentCard?.jp}
                     </div>
-                    <div className="card-note">
-                      {isReversed
-                        ? currentCard?.kanji ? `${currentCard.kanji}${currentCard.note ? ' · ' + currentCard.note : ''}` : currentCard?.note
-                        : currentCard?.note}
+                    <div className="card-kanji">
+                      {isReversed ? '' : currentCard?.kanji}
                     </div>
-                    <span className="tap-hint">tap to flip back</span>
-                  </>
-                )}
+                    <span className="tap-hint">tap to reveal</span>
+                  </div>
+                  <div className="card-face back">
+                    {isFlipped && (
+                      <>
+                        <span className="card-label">
+                          {isReversed ? 'Japanese' : 'English'}
+                        </span>
+                        <span className="card-lesson">L{currentCard?.lesson}</span>
+                        <div className="card-en" style={isReversed ? { fontFamily: "'Noto Sans JP', sans-serif", fontSize: '2.5rem', fontWeight: '300' } : {}}>
+                          {isReversed ? currentCard?.jp : currentCard?.en}
+                        </div>
+                        <div className="card-note">
+                          {isReversed
+                            ? currentCard?.kanji ? `${currentCard.kanji}${currentCard.note ? ' · ' + currentCard.note : ''}` : currentCard?.note
+                            : currentCard?.note}
+                        </div>
+                        <span className="tap-hint">tap to flip back</span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div className="nav">
-            <button className="nav-btn" onClick={prevCard} disabled={currentIndex === 0}>
-              ← Prev
-            </button>
-            <div className="progress-ring">
-              <svg width="52" height="52" viewBox="0 0 52 52">
-                <circle className="bg" cx="26" cy="26" r="22" fill="none" strokeWidth="3"/>
-                <circle className="fg" cx="26" cy="26" r="22" fill="none" strokeWidth="3"
-                  strokeDasharray="138.2" strokeDashoffset={ringOffset} strokeLinecap="round"/>
-              </svg>
-              <span>
-                {currentIndex + 1}
-                <br/>
-                <span style={{ fontSize: '0.5rem', color: 'var(--border)' }}>
-                  {localDeck.length}
-                </span>
-              </span>
-            </div>
-            <button className="nav-btn" onClick={nextCard} disabled={currentIndex === localDeck.length - 1}>
-              Next →
-            </button>
-          </div>
+              <div className="nav">
+                <button className="nav-btn" onClick={prevCard} disabled={currentIndex === 0}>
+                  ← Prev
+                </button>
+                <div className="progress-ring">
+                  <svg width="52" height="52" viewBox="0 0 52 52">
+                    <circle className="bg" cx="26" cy="26" r="22" fill="none" strokeWidth="3"/>
+                    <circle className="fg" cx="26" cy="26" r="22" fill="none" strokeWidth="3"
+                      strokeDasharray="138.2" strokeDashoffset={ringOffset} strokeLinecap="round"/>
+                  </svg>
+                  <span>
+                    {currentIndex + 1}
+                    <br/>
+                    <span style={{ fontSize: '0.5rem', color: 'var(--border)' }}>
+                      {localDeck.length}
+                    </span>
+                  </span>
+                </div>
+                <button className="nav-btn" onClick={nextCard} disabled={currentIndex === localDeck.length - 1}>
+                  Next →
+                </button>
+              </div>
 
-          <div className="score-row" style={{ display: isFlipped ? 'flex' : 'none' }}>
-            <button className="score-btn wrong" onClick={() => handleMarkCard(false)}>
-              ✗ Again
-            </button>
-            <button className="score-btn right" onClick={() => handleMarkCard(true)}>
-              ✓ Got it
-            </button>
-          </div>
+              <div className="score-row" style={{ display: isFlipped ? 'flex' : 'none' }}>
+                <button className="score-btn wrong" onClick={() => handleMarkCard(false)}>
+                  ✗ Again
+                </button>
+                <button className="score-btn right" onClick={() => handleMarkCard(true)}>
+                  ✓ Got it
+                </button>
+              </div>
 
-          <div className="bottom-row">
-            <button className="shuffle-btn" onClick={handleShuffle}>
-              ⇄ Shuffle deck
-            </button>
-            <button
-              className={`reverse-btn ${isReversed ? 'active' : ''}`}
-              onClick={toggleReverse}
-            >
-              ⇅ Reverse mode
-            </button>
-            <button className="reset-btn" onClick={reset}>
-              ↻ Reset
-            </button>
-          </div>
+              <div className="bottom-row">
+                <button className="shuffle-btn" onClick={handleShuffle}>
+                  ⇄ Shuffle deck
+                </button>
+                <button
+                  className={`reverse-btn ${isReversed ? 'active' : ''}`}
+                  onClick={toggleReverse}
+                >
+                  ⇅ Reverse mode
+                </button>
+                <button className="reset-btn" onClick={reset}>
+                  ↻ Reset
+                </button>
+              </div>
+            </>
+          )}
         </>
       )}
     </>

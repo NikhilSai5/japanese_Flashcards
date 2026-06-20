@@ -2049,6 +2049,151 @@ header {
   color: var(--ink);
 }
 
+/* ── What U Missed Section ── */
+.kf-missed-section {
+  width: 100%;
+  margin: 4px 0 20px;
+  border: 2px solid var(--red);
+  border-radius: 5px;
+  overflow: hidden;
+  background: #fff8f8;
+  animation: kf-bounce 0.4s ease;
+}
+
+.kf-missed-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(192, 57, 43, 0.08);
+  border-bottom: 1.5px solid rgba(192, 57, 43, 0.2);
+}
+
+.kf-missed-emoji {
+  font-size: 1.3rem;
+}
+
+.kf-missed-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.05rem;
+  color: var(--red);
+  flex: 1;
+  letter-spacing: 0.01em;
+}
+
+.kf-missed-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: var(--red);
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+
+.kf-missed-list {
+  max-height: 220px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.kf-missed-list::-webkit-scrollbar {
+  width: 4px;
+}
+.kf-missed-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.kf-missed-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(192, 57, 43, 0.1);
+  transition: background 0.1s;
+}
+
+.kf-missed-item:last-child {
+  border-bottom: none;
+}
+
+.kf-missed-item:hover {
+  background: rgba(192, 57, 43, 0.05);
+}
+
+.kf-missed-char {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 300;
+  color: var(--ink);
+  min-width: 44px;
+  text-align: center;
+}
+
+.kf-missed-meaning {
+  font-family: 'DM Serif Display', serif;
+  font-size: 0.95rem;
+  color: var(--ink);
+  flex: 1;
+  text-transform: capitalize;
+}
+
+.kf-missed-reading {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.kf-study-missed-btn {
+  width: 100%;
+  margin-top: 14px;
+  background: var(--red) !important;
+  border-color: var(--red) !important;
+  color: #fff !important;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  padding: 13px 18px;
+  animation: none;
+  border-radius: 4px;
+}
+
+.kf-study-missed-btn:hover {
+  background: #a93226 !important;
+  border-color: #a93226 !important;
+  color: #fff !important;
+}
+
+/* ── Perfect banner ── */
+.kf-perfect {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: rgba(46, 125, 50, 0.07);
+  border: 1.5px solid rgba(46, 125, 50, 0.3);
+  border-radius: 4px;
+  margin: 4px 0 20px;
+  width: 100%;
+  animation: kf-bounce 0.4s ease;
+}
+
+.kf-perfect-emoji {
+  font-size: 1.4rem;
+}
+
+.kf-perfect-text {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: #2e7d32;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
 /* ===========================
    RESPONSIVE - KANJI FLASHCARDS
    =========================== */
@@ -2561,4 +2706,91 @@ header {
   .grammar-card-pattern {
     font-size: 0.95rem;
   }
+}
+
+/* ===========================
+   VOCABULARY COMPLETION SCREEN
+   =========================== */
+.vocab-complete {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  background: #fff;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 4px 6px 0 var(--cream), 4px 6px 0 1px var(--border);
+}
+
+.vocab-complete-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  animation: kf-bounce 0.6s ease;
+}
+
+.vocab-complete-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.6rem;
+  color: var(--ink);
+  margin-bottom: 24px;
+}
+
+.vocab-complete-stats {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 24px;
+}
+
+.vocab-complete-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.vocab-complete-number {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2rem;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.vocab-complete-number.green { color: #2e7d32; }
+.vocab-complete-number.red   { color: var(--red); }
+
+.vocab-complete-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.vocab-complete-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.vocab-perfect {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: rgba(46, 125, 50, 0.07);
+  border: 1.5px solid rgba(46, 125, 50, 0.3);
+  border-radius: 4px;
+  margin-bottom: 20px;
+  width: 100%;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: #2e7d32;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
 }
