@@ -5,11 +5,18 @@ import { useSupabase } from '../hooks/useSupabase';
 import { useAuth } from '../hooks/useAuth';
 import '../index.css';
 
-function ProtectedApp() {
+function ProtectedApp({ levelFilter = 'n5' }) {
   const db = useSupabase();
   const { authUser } = useAuth();
-  const { allCards, lessons, activeLessons, deck, isLoading, error, setActiveLesson, toggleActiveLesson, resetToLesson1 } = useFlashcards();
+  const { lessons, activeLessons, deck, isLoading, error, setActiveLesson, toggleActiveLesson, resetToLesson1 } = useFlashcards();
   const [localDeck, setLocalDeck] = useState([]);
+
+  // Filter lessons based on JLPT level
+  const levelLessons = lessons.filter(l => levelFilter === 'n5' ? l <= 25 : l >= 26 && l <= 50);
+  const levelActiveLessons = new Set([...activeLessons].filter(l => levelFilter === 'n5' ? l <= 25 : l >= 26 && l <= 50));
+  const levelLabel = levelFilter === 'n5' ? 'N5' : 'N4';
+  const levelRange = levelFilter === 'n5' ? 'Lessons 1–25' : 'Lessons 26–50';
+
   const {
     currentIndex,
     correct,
@@ -28,8 +35,10 @@ function ProtectedApp() {
   } = useCardNavigation(localDeck);
 
   useEffect(() => {
-    setLocalDeck(deck);
-  }, [deck]);
+    // Only sync deck cards that belong to this level
+    const levelDeck = deck.filter(c => levelFilter === 'n5' ? c.lesson <= 25 : c.lesson >= 26 && c.lesson <= 50);
+    setLocalDeck(levelDeck);
+  }, [deck, levelFilter]);
 
   const handleShuffle = () => {
     const newDeck = [...localDeck];
@@ -127,13 +136,13 @@ function ProtectedApp() {
       ) : (
         <>
           <div className="vocab-page-header">
-            <h2 className="vocab-page-title">語彙 <span>Vocabulary</span></h2>
-            <p className="vocab-page-subtitle">Minna no Nihongo · Lessons 1–12</p>
+            <h2 className="vocab-page-title">語彙 <span>Vocabulary · JLPT {levelLabel}</span></h2>
+            <p className="vocab-page-subtitle">Minna no Nihongo · {levelRange}</p>
           </div>
 
           <div className="controls">
             <button
-              className={`lesson-btn ${activeLessons.size === lessons.length ? 'active' : ''}`}
+              className={`lesson-btn ${levelActiveLessons.size === levelLessons.length ? 'active' : ''}`}
               onClick={() => setActiveLesson('all')}
             >
               All
@@ -144,7 +153,7 @@ function ProtectedApp() {
             >
               Reset
             </button>
-            {lessons.map((lesson) => (
+            {levelLessons.map((lesson) => (
               <button
                 key={lesson}
                 className={`lesson-btn ${activeLessons.has(lesson) ? 'active' : ''}`}

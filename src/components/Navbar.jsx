@@ -1,9 +1,8 @@
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Navbar() {
   const { authUser, logout } = useAuth();
-  const location = useLocation();
 
   const handleLogout = async () => {
     await logout();
@@ -18,12 +17,20 @@ export default function Navbar() {
 
         <div className="navbar-links">
           <NavLink
-            to="/"
+            to="/n5"
             className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}
-            id="nav-vocabulary"
+            id="nav-n5"
           >
             <span className="navbar-link-jp">語彙</span>
-            <span className="navbar-link-en">Vocabulary</span>
+            <span className="navbar-link-en">N5 <span className="navbar-level-badge">1–25</span></span>
+          </NavLink>
+          <NavLink
+            to="/n4"
+            className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}
+            id="nav-n4"
+          >
+            <span className="navbar-link-jp">語彙</span>
+            <span className="navbar-link-en">N4 <span className="navbar-level-badge">26–50</span></span>
           </NavLink>
           <NavLink
             to="/kanji"
