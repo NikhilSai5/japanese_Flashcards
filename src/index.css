@@ -2857,147 +2857,117 @@ header {
 }
 
 /* ========================================================================
-   Phone Mode — Swipe gestures on existing cards
+   Card Stack & Gestures (Underneath Card & Phone Swipe Support)
    ======================================================================== */
 
-/* ── Top row with toggle + stats ── */
-.vocab-top-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+.card-stack-container {
+  position: relative;
   width: 100%;
-  max-width: 700px;
-  margin-bottom: 12px;
+  max-width: 520px;
+  height: 280px;
+  margin-bottom: 24px;
 }
 
-.vocab-top-row .stats {
+.card-stack-container .card-wrapper {
   margin-bottom: 0;
 }
 
-@media (max-width: 600px) {
-  .vocab-top-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
+.card-wrapper.card-underneath {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+  cursor: default;
+  transform-origin: center center;
 }
 
-/* ── Swipeable card in phone mode ── */
-.card-wrapper.swipable {
-  touch-action: none;
+.card-wrapper.card-top {
+  position: relative;
+  z-index: 2;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
   cursor: grab;
 }
 
-.card-wrapper.swipable:active {
+.card-wrapper.card-top:active {
   cursor: grabbing;
 }
 
-/* ── Toggle button ── */
-.phone-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 22px;
-  border: 2px solid var(--border);
-  border-radius: 4px;
-  background: transparent;
-  color: var(--muted);
-  font-family: 'DM Mono', monospace;
-  font-size: 0.7rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.18s;
-  box-shadow: 3px 4px 0 var(--cream), 3px 4px 0 1px var(--border);
-  white-space: nowrap;
-  flex-shrink: 0;
+/* ── Subtle background overlay during swipe (green for right, red for left) ── */
+.swipe-bg-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 5;
+  transition: background-color 0.05s ease-out;
 }
 
-.phone-toggle-btn:hover,
-.phone-toggle-btn.active {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--paper);
-  box-shadow: 4px 5px 0 var(--cream), 4px 5px 0 1px var(--border);
-}
-
-.phone-toggle-ico {
-  font-size: 1rem;
-}
-
-/* ── Swipe stamp overlays ── */
+/* ── Swipe stamp badges (✓ 正解 / ✗ 間違い) ── */
 .swipe-stamp {
   position: absolute;
-  z-index: 30;
-  border: 3px solid;
-  padding: 8px 18px;
+  z-index: 25;
+  border: 2px solid;
+  padding: 5px 12px;
   font-family: 'DM Mono', monospace;
   font-weight: 700;
-  font-size: 1.1rem;
-  letter-spacing: 0.12em;
-  border-radius: 8px;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  border-radius: 6px;
   pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .swipe-stamp.got {
-  top: 42%;
-  left: 20px;
-  transform: rotate(-14deg);
-  color: #2e7d32;
+  top: 14px;
+  right: 18px;
+  transform: rotate(6deg);
+  color: #1b5e20;
   border-color: #2e7d32;
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(232, 245, 233, 0.95);
 }
 
 .swipe-stamp.again {
-  top: 42%;
-  right: 20px;
-  transform: rotate(14deg);
-  color: var(--red);
-  border-color: var(--red);
-  background: rgba(255, 255, 255, 0.92);
+  top: 14px;
+  left: 18px;
+  transform: rotate(-6deg);
+  color: #b71c1c;
+  border-color: #c62828;
+  background: rgba(255, 235, 238, 0.95);
 }
 
-/* ── Swipe hint bar (below card in phone mode) ── */
-.swipe-hint {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  margin-bottom: 28px;
-  font-family: 'DM Mono', monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.1em;
+@media (max-width: 480px) {
+  .card-stack-container {
+    height: 260px;
+  }
 }
 
-.swipe-hint-btn {
-  cursor: pointer;
-  padding: 8px 18px;
-  border: 2px solid;
-  border-radius: 4px;
-  transition: all 0.15s;
-}
+@media (max-width: 600px) {
+  .controls {
+    padding: 0 12px;
+    gap: 6px;
+  }
 
-.swipe-hint-btn.again {
-  border-color: var(--red);
-  color: var(--red);
-}
+  .lesson-btn {
+    padding: 4px 10px;
+    font-size: 0.65rem;
+  }
 
-.swipe-hint-btn.again:hover {
-  background: var(--red);
-  color: #fff;
-}
+  .score-row {
+    width: 100%;
+    max-width: 320px;
+    justify-content: center;
+    padding: 0 16px;
+  }
 
-.swipe-hint-btn.got {
-  border-color: #2e7d32;
-  color: #2e7d32;
-}
-
-.swipe-hint-btn.got:hover {
-  background: #2e7d32;
-  color: #fff;
-}
-
-.swipe-hint-sep {
-  color: var(--border);
-  font-size: 0.8rem;
+  .bottom-row {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
 }
