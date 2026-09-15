@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&display=swap');
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -88,7 +90,8 @@ header p {
   border-radius: 2px;
 }
 
-.lesson-btn:hover, .lesson-btn.active {
+.lesson-btn:hover,
+.lesson-btn.active {
   background: var(--ink);
   border-color: var(--ink);
   color: var(--paper);
@@ -345,7 +348,8 @@ circle.fg {
   transition: all 0.15s;
 }
 
-.reverse-btn:hover, .reverse-btn.active {
+.reverse-btn:hover,
+.reverse-btn.active {
   background: var(--gold);
   border-color: var(--gold);
   color: #fff;
@@ -923,8 +927,17 @@ header {
 }
 
 @keyframes kanji-pulse {
-  0%, 100% { opacity: 0.3; transform: scale(0.95); }
-  50% { opacity: 1; transform: scale(1.05); }
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.95);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
 }
 
 .kanji-loading-text {
@@ -952,8 +965,13 @@ header {
 }
 
 @keyframes loading-slide {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(350%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(350%);
+  }
 }
 
 /* Kanji Error */
@@ -1152,13 +1170,13 @@ header {
 .kanji-cat-count {
   font-size: 0.55rem;
   opacity: 0.7;
-  background: rgba(0,0,0,0.08);
+  background: rgba(0, 0, 0, 0.08);
   padding: 1px 5px;
   border-radius: 10px;
 }
 
 .kanji-cat-pill.active .kanji-cat-count {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Results info */
@@ -1369,8 +1387,13 @@ header {
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .kanji-detail {
@@ -1387,8 +1410,15 @@ header {
 }
 
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .kanji-detail-close {
@@ -1950,9 +1980,17 @@ header {
 }
 
 @keyframes kf-bounce {
-  0% { transform: scale(0); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .kf-complete-title {
@@ -2017,7 +2055,9 @@ header {
 }
 
 @keyframes kf-bar-grow {
-  from { width: 0 !important; }
+  from {
+    width: 0 !important;
+  }
 }
 
 .kf-complete-actions {
@@ -2111,6 +2151,7 @@ header {
 .kf-missed-list::-webkit-scrollbar {
   width: 4px;
 }
+
 .kf-missed-list::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 2px;
@@ -2489,13 +2530,13 @@ header {
 .grammar-cat-count {
   font-size: 0.55rem;
   opacity: 0.7;
-  background: rgba(0,0,0,0.08);
+  background: rgba(0, 0, 0, 0.08);
   padding: 1px 5px;
   border-radius: 10px;
 }
 
 .grammar-cat-pill.active .grammar-cat-count {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Results info */
@@ -2619,8 +2660,15 @@ header {
 }
 
 @keyframes grammar-fade-in {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .grammar-example-label {
@@ -2766,8 +2814,13 @@ header {
   line-height: 1;
 }
 
-.vocab-complete-number.green { color: #2e7d32; }
-.vocab-complete-number.red   { color: var(--red); }
+.vocab-complete-number.green {
+  color: #2e7d32;
+}
+
+.vocab-complete-number.red {
+  color: var(--red);
+}
 
 .vocab-complete-label {
   font-family: 'DM Mono', monospace;
@@ -2801,4 +2854,150 @@ header {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 600;
+}
+
+/* ========================================================================
+   Phone Mode — Swipe gestures on existing cards
+   ======================================================================== */
+
+/* ── Top row with toggle + stats ── */
+.vocab-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  max-width: 700px;
+  margin-bottom: 12px;
+}
+
+.vocab-top-row .stats {
+  margin-bottom: 0;
+}
+
+@media (max-width: 600px) {
+  .vocab-top-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}
+
+/* ── Swipeable card in phone mode ── */
+.card-wrapper.swipable {
+  touch-action: none;
+  cursor: grab;
+}
+
+.card-wrapper.swipable:active {
+  cursor: grabbing;
+}
+
+/* ── Toggle button ── */
+.phone-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 22px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.18s;
+  box-shadow: 3px 4px 0 var(--cream), 3px 4px 0 1px var(--border);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.phone-toggle-btn:hover,
+.phone-toggle-btn.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+  box-shadow: 4px 5px 0 var(--cream), 4px 5px 0 1px var(--border);
+}
+
+.phone-toggle-ico {
+  font-size: 1rem;
+}
+
+/* ── Swipe stamp overlays ── */
+.swipe-stamp {
+  position: absolute;
+  z-index: 30;
+  border: 3px solid;
+  padding: 8px 18px;
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.12em;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.swipe-stamp.got {
+  top: 42%;
+  left: 20px;
+  transform: rotate(-14deg);
+  color: #2e7d32;
+  border-color: #2e7d32;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.swipe-stamp.again {
+  top: 42%;
+  right: 20px;
+  transform: rotate(14deg);
+  color: var(--red);
+  border-color: var(--red);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+/* ── Swipe hint bar (below card in phone mode) ── */
+.swipe-hint {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 28px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+}
+
+.swipe-hint-btn {
+  cursor: pointer;
+  padding: 8px 18px;
+  border: 2px solid;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+.swipe-hint-btn.again {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.swipe-hint-btn.again:hover {
+  background: var(--red);
+  color: #fff;
+}
+
+.swipe-hint-btn.got {
+  border-color: #2e7d32;
+  color: #2e7d32;
+}
+
+.swipe-hint-btn.got:hover {
+  background: #2e7d32;
+  color: #fff;
+}
+
+.swipe-hint-sep {
+  color: var(--border);
+  font-size: 0.8rem;
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion as Motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useFlashcards } from '../hooks/useFlashcards';
 import { useCardNavigation } from '../hooks/useCardNavigation';
 import { useSupabase } from '../hooks/useSupabase';
@@ -10,8 +11,14 @@ function ProtectedApp({ levelFilter = 'n5' }) {
   const { authUser } = useAuth();
   const { lessons, activeLessons, deck, isLoading, error, setActiveLesson, toggleActiveLesson, resetToLesson1 } = useFlashcards();
   const [localDeck, setLocalDeck] = useState([]);
+  const [phoneMode, setPhoneMode] = useState(false);
+  const [exitDir, setExitDir] = useState(null);
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-320, 320], [-18, 18]);
+  const gotOpacity = useTransform(x, [50, 150], [0, 1]);
+  const againOpacity = useTransform(x, [-150, -50], [1, 0]);
+  const cardOpacity = useTransform(x, (v) => Math.max(0, 1 - Math.abs(v) / 640));
 
-  // Filter lessons based on JLPT level
   const levelLessons = lessons.filter(l => levelFilter === 'n5' ? l <= 25 : l >= 26 && l <= 50);
   const levelActiveLessons = new Set([...activeLessons].filter(l => levelFilter === 'n5' ? l <= 25 : l >= 26 && l <= 50));
   const levelLabel = levelFilter === 'n5' ? 'N5' : 'N4';
@@ -35,7 +42,6 @@ function ProtectedApp({ levelFilter = 'n5' }) {
   } = useCardNavigation(localDeck);
 
   useEffect(() => {
-    // Only sync deck cards that belong to this level
     const levelDeck = deck.filter(c => levelFilter === 'n5' ? c.lesson <= 25 : c.lesson >= 26 && c.lesson <= 50);
     setLocalDeck(levelDeck);
   }, [deck, levelFilter]);
@@ -61,7 +67,6 @@ function ProtectedApp({ levelFilter = 'n5' }) {
     const cardId = localDeck[currentIndex]?.id;
     if (cardId) {
       if (authUser) {
-        // Save to Supabase for logged-in users
         try {
           const { data: existing } = await db
             .from('study_progress')
@@ -89,7 +94,6 @@ function ProtectedApp({ levelFilter = 'n5' }) {
           console.error('Error saving progress:', err);
         }
       } else {
-        // Save to localStorage for guests
         const guestProgress = JSON.parse(localStorage.getItem('guestProgress') || '{}');
         if (guestProgress[cardId]) {
           guestProgress[cardId].correct_count += isRight ? 1 : 0;
@@ -113,10 +117,38 @@ function ProtectedApp({ levelFilter = 'n5' }) {
     }
   };
 
-  const currentCard = localDeck[currentIndex];
+  const triggerSwipe = (dir) => {
+    if (exitDir || !phoneMode) return;
+    setExitDir(dir);
+    x.jump(0);
+    animate(x, dir * 700, {
+      type: 'spring',
+      stiffness: 260,
+      damping: 24,
+      onComplete: () => {
+        x.jump(0);
+        setExitDir(null);
+        if (dir > 0) handleMarkCard(true);
+        else handleMarkCard(false);
+      }
+    });
+  };
+
+  const handleCardDragEnd = (_e, info) => {
+    const offset = info.offset.x;
+    if (offset > 80 || info.velocity.x > 400) {
+      triggerSwipe(1);
+    } else if (offset < -80 || info.velocity.x < -400) {
+      triggerSwipe(-1);
+    } else {
+      animate(x, 0, { type: 'spring', stiffness: 320, damping: 26 });
+    }
+  };
+
   const pct = localDeck.length > 1 ? currentIndex / (localDeck.length - 1) : 1;
   const circ = 2 * Math.PI * 22;
   const ringOffset = circ * (1 - pct);
+  const currentCard = localDeck[currentIndex];
 
   return (
     <>
@@ -140,36 +172,46 @@ function ProtectedApp({ levelFilter = 'n5' }) {
             <p className="vocab-page-subtitle">Minna no Nihongo · {levelRange}</p>
           </div>
 
-          <div className="controls">
+          <div className="vocab-top-row">
             <button
-              className={`lesson-btn ${levelActiveLessons.size === levelLessons.length ? 'active' : ''}`}
-              onClick={() => setActiveLesson('all')}
+              className={`phone-toggle-btn ${phoneMode ? 'active' : ''}`}
+              onClick={() => setPhoneMode(m => !m)}
             >
-              All
+              <span className="phone-toggle-ico">📱</span>
+              {phoneMode ? '← Desktop' : 'Phone mode'}
             </button>
-            <button
-              className="lesson-btn"
-              onClick={resetToLesson1}
-            >
-              Reset
-            </button>
-            {levelLessons.map((lesson) => (
-              <button
-                key={lesson}
-                className={`lesson-btn ${activeLessons.has(lesson) ? 'active' : ''}`}
-                onClick={() => toggleActiveLesson(lesson)}
-              >
-                Lesson {lesson}
-              </button>
-            ))}
+
+            <div className="stats">
+              {localDeck.length} cards · {correct} correct this session
+            </div>
           </div>
 
-          <div className="stats">
-            {localDeck.length} cards · {correct} correct this session
-          </div>
+          {!phoneMode && (
+            <>
+              <div className="controls">
+                <button
+                  className={`lesson-btn ${levelActiveLessons.size === levelLessons.length ? 'active' : ''}`}
+                  onClick={() => setActiveLesson('all')}
+                >
+                  All
+                </button>
+                <button className="lesson-btn" onClick={resetToLesson1}>
+                  Reset
+                </button>
+                {levelLessons.map((lesson) => (
+                  <button
+                    key={lesson}
+                    className={`lesson-btn ${activeLessons.has(lesson) ? 'active' : ''}`}
+                    onClick={() => toggleActiveLesson(lesson)}
+                  >
+                    Lesson {lesson}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
 
           {sessionComplete ? (
-            /* ── Completion Screen ── */
             <div className="vocab-complete">
               <div className="vocab-complete-icon">🎉</div>
               <h2 className="vocab-complete-title">Session Complete!</h2>
@@ -189,19 +231,16 @@ function ProtectedApp({ levelFilter = 'n5' }) {
                   <span className="vocab-complete-label">Accuracy</span>
                 </div>
               </div>
-
               {getMissedDeck().length === 0 && (
                 <div className="vocab-perfect">
                   <span>🌟</span>
                   <span>Perfect! No missed cards!</span>
                 </div>
               )}
-
               <div className="vocab-complete-actions">
                 <button className="kf-action-btn" onClick={reset}>↻ Study Again</button>
                 <button className="kf-action-btn" onClick={handleShuffle}>⇄ Shuffle &amp; Retry</button>
               </div>
-
               {getMissedDeck().length > 0 && (
                 <button className="kf-action-btn kf-study-missed-btn" onClick={handleReviewWrong}>
                   🔁 Review Wrong Cards ({getMissedDeck().length})
@@ -209,11 +248,27 @@ function ProtectedApp({ levelFilter = 'n5' }) {
               )}
             </div>
           ) : (
-            /* ── Active Study ── */
             <>
-              <div className="card-wrapper" onClick={flipCard}>
+              <Motion.div
+                className={`card-wrapper ${phoneMode ? 'swipable' : ''}`}
+                style={phoneMode ? { x, rotate, opacity: cardOpacity } : {}}
+                drag={phoneMode && !exitDir ? 'x' : false}
+                dragElastic={0.85}
+                onDragEnd={phoneMode ? handleCardDragEnd : undefined}
+                onClick={flipCard}
+              >
                 <div className={`card-inner ${isFlipped ? 'flipped' : ''}`}>
                   <div className="card-face front">
+                    {phoneMode && (
+                      <>
+                        <Motion.div className="swipe-stamp got" style={{ opacity: gotOpacity, scale: gotOpacity }}>
+                          ✓ 正解
+                        </Motion.div>
+                        <Motion.div className="swipe-stamp again" style={{ opacity: againOpacity, scale: againOpacity }}>
+                          ✗ 間違い
+                        </Motion.div>
+                      </>
+                    )}
                     <span className="card-label">
                       {isReversed ? 'English' : 'Japanese'}
                     </span>
@@ -224,7 +279,9 @@ function ProtectedApp({ levelFilter = 'n5' }) {
                     <div className="card-kanji">
                       {isReversed ? '' : currentCard?.kanji}
                     </div>
-                    <span className="tap-hint">tap to reveal</span>
+                    <span className="tap-hint">
+                      {phoneMode ? 'tap to flip · swipe to answer' : 'tap to reveal'}
+                    </span>
                   </div>
                   <div className="card-face back">
                     {isFlipped && (
@@ -246,39 +303,49 @@ function ProtectedApp({ levelFilter = 'n5' }) {
                     )}
                   </div>
                 </div>
-              </div>
+              </Motion.div>
 
-              <div className="nav">
-                <button className="nav-btn" onClick={prevCard} disabled={currentIndex === 0}>
-                  ← Prev
-                </button>
-                <div className="progress-ring">
-                  <svg width="52" height="52" viewBox="0 0 52 52">
-                    <circle className="bg" cx="26" cy="26" r="22" fill="none" strokeWidth="3"/>
-                    <circle className="fg" cx="26" cy="26" r="22" fill="none" strokeWidth="3"
-                      strokeDasharray="138.2" strokeDashoffset={ringOffset} strokeLinecap="round"/>
-                  </svg>
-                  <span>
-                    {currentIndex + 1}
-                    <br/>
-                    <span style={{ fontSize: '0.5rem', color: 'var(--border)' }}>
-                      {localDeck.length}
-                    </span>
-                  </span>
+              {phoneMode ? (
+                <div className="swipe-hint">
+                  <span className="swipe-hint-btn again" onClick={() => triggerSwipe(-1)}>✗ Again</span>
+                  <span className="swipe-hint-sep">|</span>
+                  <span className="swipe-hint-btn got" onClick={() => triggerSwipe(1)}>✓ Got it</span>
                 </div>
-                <button className="nav-btn" onClick={nextCard} disabled={currentIndex === localDeck.length - 1}>
-                  Next →
-                </button>
-              </div>
+              ) : (
+                <>
+                  <div className="nav">
+                    <button className="nav-btn" onClick={prevCard} disabled={currentIndex === 0}>
+                      ← Prev
+                    </button>
+                    <div className="progress-ring">
+                      <svg width="52" height="52" viewBox="0 0 52 52">
+                        <circle className="bg" cx="26" cy="26" r="22" fill="none" strokeWidth="3" />
+                        <circle className="fg" cx="26" cy="26" r="22" fill="none" strokeWidth="3"
+                          strokeDasharray="138.2" strokeDashoffset={ringOffset} strokeLinecap="round" />
+                      </svg>
+                      <span>
+                        {currentIndex + 1}
+                        <br />
+                        <span style={{ fontSize: '0.5rem', color: 'var(--border)' }}>
+                          {localDeck.length}
+                        </span>
+                      </span>
+                    </div>
+                    <button className="nav-btn" onClick={nextCard} disabled={currentIndex === localDeck.length - 1}>
+                      Next →
+                    </button>
+                  </div>
 
-              <div className="score-row" style={{ display: isFlipped ? 'flex' : 'none' }}>
-                <button className="score-btn wrong" onClick={() => handleMarkCard(false)}>
-                  ✗ Again
-                </button>
-                <button className="score-btn right" onClick={() => handleMarkCard(true)}>
-                  ✓ Got it
-                </button>
-              </div>
+                  <div className="score-row" style={{ display: isFlipped ? 'flex' : 'none' }}>
+                    <button className="score-btn wrong" onClick={() => handleMarkCard(false)}>
+                      ✗ Again
+                    </button>
+                    <button className="score-btn right" onClick={() => handleMarkCard(true)}>
+                      ✓ Got it
+                    </button>
+                  </div>
+                </>
+              )}
 
               <div className="bottom-row">
                 <button className="shuffle-btn" onClick={handleShuffle}>
