@@ -10,20 +10,32 @@ export function useFlashcards() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load cards from Supabase
+  // Load cards from Supabase (paginated to handle >1000 rows)
   useEffect(() => {
     const loadCards = async () => {
       try {
         setIsLoading(true);
-        const { data, error: supabaseError } = await db
-          .from('flashcards')
-          .select('*')
-          .order('lesson', { ascending: true })
-          .order('id', { ascending: true });
+        let allData = [];
+        let from = 0;
+        const pageSize = 1000;
+        let hasMore = true;
 
-        if (supabaseError) throw supabaseError;
+        while (hasMore) {
+          const { data, error: supabaseError } = await db
+            .from('flashcards')
+            .select('*')
+            .order('lesson', { ascending: true })
+            .order('id', { ascending: true })
+            .range(from, from + pageSize - 1);
 
-        const processedCards = data.map(r => ({
+          if (supabaseError) throw supabaseError;
+
+          allData = allData.concat(data || []);
+          hasMore = data && data.length === pageSize;
+          from += pageSize;
+        }
+
+        const processedCards = allData.map(r => ({
           id: r.id,
           jp: r.jp,
           kanji: r.kanji || '',
