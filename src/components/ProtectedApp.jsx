@@ -283,7 +283,7 @@ function ProtectedApp({ levelFilter = 'n5' }) {
                       <button
                         key={lesson}
                         className={`lesson-number-btn ${isActive ? 'active' : ''}`}
-                        onClick={() => setActiveLesson(lesson)}
+                        onClick={() => toggleActiveLesson(lesson)}
                       >
                         {lesson}
                       </button>
