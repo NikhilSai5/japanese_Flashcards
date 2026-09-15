@@ -2857,6 +2857,189 @@ header {
 }
 
 /* ========================================================================
+   Lesson Selector Card (Accordion & Grid from Screenshot)
+   ======================================================================== */
+
+.lesson-card-container {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 3px 5px 0 var(--cream), 3px 5px 0 1px var(--border);
+  margin-bottom: 20px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.lesson-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  cursor: pointer;
+  background: #fff;
+  transition: background-color 0.15s;
+  user-select: none;
+}
+
+.lesson-card-header:hover {
+  background: #faf8f5;
+}
+
+.lesson-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lesson-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.lesson-card-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.lesson-card-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.lesson-card-subtitle {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+.lesson-card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.lesson-card-chevron {
+  display: flex;
+  align-items: center;
+  color: var(--muted);
+}
+
+/* ── Expanded Lesson Grid Panel ── */
+.lesson-card-body {
+  padding: 16px 18px;
+  background: #faf8f5;
+  border-top: 1.5px solid var(--border);
+}
+
+.lesson-card-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.lesson-card-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lesson-card-label {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.lesson-quick-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.lesson-quick-btn:hover,
+.lesson-quick-btn.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.lesson-card-total {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.lesson-number-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
+}
+
+.lesson-number-btn {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  background: #fff;
+  color: var(--ink);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.lesson-number-btn:hover {
+  background: #f0ede6;
+  border-color: var(--ink);
+}
+
+.lesson-number-btn.active {
+  background: #2b2623;
+  color: #fff;
+  border-color: #2b2623;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+@media (max-width: 500px) {
+  .lesson-number-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+
+  .lesson-number-btn {
+    font-size: 0.85rem;
+    height: 38px;
+  }
+}
+
+/* ========================================================================
    Card Stack & Gestures (Underneath Card & Phone Swipe Support)
    ======================================================================== */
 
