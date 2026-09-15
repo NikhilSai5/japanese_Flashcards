@@ -2995,7 +2995,8 @@ header {
 .lesson-number-grid {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
-  gap: 6px;
+  row-gap: 3px;
+  column-gap: 1px;
 }
 
 .lesson-number-btn {
@@ -3030,7 +3031,8 @@ header {
 @media (max-width: 500px) {
   .lesson-number-grid {
     grid-template-columns: repeat(5, 1fr);
-    gap: 8px;
+    row-gap: 4px;
+    column-gap: 2px;
   }
 
   .lesson-number-btn {
