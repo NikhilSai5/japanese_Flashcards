@@ -6,61 +6,90 @@
  * Falls back to any available Japanese voice on other platforms.
  */
 
+// Keywords to match for each voice preference (case-insensitive)
 const VOICE_PREFS = {
-  'ja-JP-NanamiNeural': ['Nanami', 'Haruka', 'Ayumi'],   // female
-  'ja-JP-KeitaNeural':  ['Keita', 'Ichiro', 'Takumi'],   // male
+  'ja-JP-NanamiNeural': ['nanami', 'haruka', 'ayumi'],   // female
+  'ja-JP-KeitaNeural':  ['keita',  'ichiro', 'takumi'],  // male
 };
 
-/** Cache the resolved SpeechSynthesisVoice objects after first load. */
-let _voiceCache = null;
-
-function loadVoices() {
+/** Wait for speechSynthesis voices to be available, then return them. */
+function getVoicesAsync() {
   return new Promise((resolve) => {
     const voices = window.speechSynthesis.getVoices();
     if (voices.length > 0) {
       resolve(voices);
       return;
     }
-    // Chrome loads voices asynchronously
-    const onChanged = () => {
+
+    let resolved = false;
+    const done = (vs) => {
+      if (resolved) return;
+      resolved = true;
       window.speechSynthesis.removeEventListener('voiceschanged', onChanged);
-      resolve(window.speechSynthesis.getVoices());
+      resolve(vs);
     };
+
+    const onChanged = () => done(window.speechSynthesis.getVoices());
     window.speechSynthesis.addEventListener('voiceschanged', onChanged);
-    // Safety timeout — resolve with whatever is available after 1 s
-    setTimeout(() => resolve(window.speechSynthesis.getVoices()), 1000);
+
+    // Hard timeout — some browsers never fire voiceschanged
+    setTimeout(() => done(window.speechSynthesis.getVoices()), 2000);
   });
 }
 
+/** Pick the best Japanese voice for the given voiceId preference. */
 async function resolveVoice(voiceId) {
-  if (!_voiceCache) {
-    _voiceCache = await loadVoices();
-  }
-  const jaVoices = _voiceCache.filter((v) => v.lang.startsWith('ja'));
-  if (jaVoices.length === 0) return null;
+  // Always fetch fresh — never cache, since users may switch voices
+  const all = await getVoicesAsync();
 
-  const preferredNames = VOICE_PREFS[voiceId] ?? VOICE_PREFS['ja-JP-NanamiNeural'];
+  // All available Japanese voices
+  const jaVoices = all.filter((v) =>
+    v.lang === 'ja-JP' || v.lang === 'ja' || v.lang.startsWith('ja-')
+  );
 
-  for (const name of preferredNames) {
-    const match = jaVoices.find((v) => v.name.includes(name));
-    if (match) return match;
+  if (jaVoices.length === 0) {
+    console.warn('[TTS] No Japanese voices found. Available langs:',
+      [...new Set(all.map((v) => v.lang))].join(', '));
+    return null;
   }
-  // Fall back to first Japanese voice
-  return jaVoices[0];
+
+  console.log('[TTS] Available Japanese voices:',
+    jaVoices.map((v) => `"${v.name}" (${v.lang})`).join(', '));
+
+  const keywords = VOICE_PREFS[voiceId];
+
+  if (keywords) {
+    for (const kw of keywords) {
+      const match = jaVoices.find((v) =>
+        v.name.toLowerCase().includes(kw) ||
+        (v.voiceURI && v.voiceURI.toLowerCase().includes(kw))
+      );
+      if (match) {
+        console.log(`[TTS] Matched voice: "${match.name}" for preference "${voiceId}"`);
+        return match;
+      }
+    }
+  }
+
+  // Fallback: if asking for male (index 1) use second voice if available, else first
+  const isMale = voiceId === 'ja-JP-KeitaNeural';
+  const fallback = (isMale && jaVoices.length > 1) ? jaVoices[1] : jaVoices[0];
+  console.log(`[TTS] No keyword match — falling back to: "${fallback.name}"`);
+  return fallback;
 }
 
 export async function playJapaneseAudio(text, voiceId = 'ja-JP-NanamiNeural') {
   if (!text || !text.trim()) {
-    console.warn('No text provided for TTS');
+    console.warn('[TTS] No text provided');
     return;
   }
 
   if (!('speechSynthesis' in window)) {
-    console.error('SpeechSynthesis is not supported in this browser');
+    console.error('[TTS] SpeechSynthesis not supported');
     return;
   }
 
-  // Cancel any ongoing speech
+  // Cancel any ongoing speech before starting new one
   window.speechSynthesis.cancel();
 
   const voice = await resolveVoice(voiceId);
@@ -68,7 +97,7 @@ export async function playJapaneseAudio(text, voiceId = 'ja-JP-NanamiNeural') {
   return new Promise((resolve, reject) => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'ja-JP';
-    utterance.rate = 0.9;   // Slightly slower — easier to follow
+    utterance.rate = 0.9;
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
     if (voice) utterance.voice = voice;
@@ -76,7 +105,7 @@ export async function playJapaneseAudio(text, voiceId = 'ja-JP-NanamiNeural') {
     utterance.onend = () => resolve();
     utterance.onerror = (e) => {
       if (e.error === 'interrupted' || e.error === 'canceled') {
-        resolve(); // Not really an error
+        resolve();
       } else {
         reject(new Error(`Speech synthesis error: ${e.error}`));
       }
@@ -100,7 +129,7 @@ export function getStoredVoice() {
       return stored;
     }
   } catch (err) {
-    console.warn('Failed to read TTS voice from localStorage:', err);
+    console.warn('[TTS] Failed to read voice from localStorage:', err);
   }
   return 'ja-JP-NanamiNeural';
 }
@@ -109,6 +138,6 @@ export function storeVoice(voice) {
   try {
     localStorage.setItem('tts_voice', voice);
   } catch (err) {
-    console.warn('Failed to store TTS voice in localStorage:', err);
+    console.warn('[TTS] Failed to store voice in localStorage:', err);
   }
 }

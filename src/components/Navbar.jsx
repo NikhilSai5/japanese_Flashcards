@@ -7,6 +7,7 @@ export default function Navbar() {
   const { authUser, logout } = useAuth();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState(() => getStoredVoice());
+  const [isPreviewing, setIsPreviewing] = useState(false);
   const settingsRef = useRef(null);
 
   const handleLogout = async () => {
@@ -16,6 +17,20 @@ export default function Navbar() {
   const handleVoiceChange = (voice) => {
     setSelectedVoice(voice);
     storeVoice(voice);
+  };
+
+  const handlePreview = async (e) => {
+    e.stopPropagation();
+    if (isPreviewing) return;
+    setIsPreviewing(true);
+    try {
+      const { playJapaneseAudio } = await import('../utils/edgeTts');
+      await playJapaneseAudio('こんにちは', selectedVoice);
+    } catch (err) {
+      console.error('Preview failed:', err);
+    } finally {
+      setIsPreviewing(false);
+    }
   };
 
   useEffect(() => {
@@ -102,6 +117,19 @@ export default function Navbar() {
               <div className="navbar-settings-dropdown">
                 <div className="settings-dropdown-header">
                   <span className="settings-label">TTS Voice</span>
+                  <button
+                    className={`settings-preview-btn${isPreviewing ? ' previewing' : ''}`}
+                    onClick={handlePreview}
+                    disabled={isPreviewing}
+                    title="Preview selected voice"
+                    aria-label="Preview voice"
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                      <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    </svg>
+                    {isPreviewing ? 'Playing…' : 'Preview'}
+                  </button>
                 </div>
                 <div className="settings-dropdown-options">
                   {getAvailableVoices().map((voice) => (
