@@ -127,25 +127,35 @@ export default function KanjiDashboard() {
 
   // Keyboard navigation
   useEffect(() => {
-    if (view !== 'study') return;
+    if (view !== 'study' || studyComplete) return;
     const handleKey = (e) => {
-      switch (e.key) {
-        case ' ':
-        case 'Enter':
-          e.preventDefault();
-          flipCard();
-          break;
-        case 'ArrowRight':
+      const target = e.target;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      if (e.key === ' ' || e.key === 'Enter') {
+        if (tag === 'BUTTON') return;
+        e.preventDefault();
+        flipCard();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (isFlipped) {
+          markCorrect();
+        } else {
           nextCard();
-          break;
-        case 'ArrowLeft':
+        }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (isFlipped) {
+          markIncorrect();
+        } else {
           prevCard();
-          break;
+        }
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [view, flipCard, nextCard, prevCard]);
+  }, [view, isFlipped, studyComplete, flipCard, nextCard, prevCard, markCorrect, markIncorrect]);
 
   // Stats
   const totalKanji = allKanji.length;

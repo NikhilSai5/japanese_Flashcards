@@ -1,4 +1,9 @@
+import { useState } from 'react';
+import { playJapaneseAudio, getStoredVoice } from '../utils/edgeTts';
+
 export function Card({ card, isFlipped, isReversed, onFlip }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+
   if (!card) {
     return (
       <div className="w-full max-w-xl h-80 mb-6 cursor-pointer flex items-center justify-center bg-white border-2 border-border rounded shadow-lg">
@@ -7,12 +12,42 @@ export function Card({ card, isFlipped, isReversed, onFlip }) {
     );
   }
 
+  const handleAudioClick = async (e) => {
+    e.stopPropagation();
+    if (isPlaying) return;
+    
+    setIsPlaying(true);
+    try {
+      const voice = getStoredVoice();
+      await playJapaneseAudio(card.jp, voice);
+    } catch (error) {
+      console.error('Failed to play audio:', error);
+    } finally {
+      setIsPlaying(false);
+    }
+  };
+
   const frontText = isReversed ? card.en : card.jp;
   const backText = isReversed ? card.jp : card.en;
   const frontLabel = isReversed ? 'English' : 'Japanese';
   const backLabel = isReversed ? 'Japanese' : 'English';
   const frontStyle = isReversed ? 'font-serif text-3xl' : 'font-jp text-5xl font-light';
   const backStyle = isReversed ? 'font-jp text-4xl font-light' : 'font-serif text-3xl';
+
+  const audioButton = (
+    <button
+      className={`card-audio-btn ${isPlaying ? 'playing' : ''}`}
+      onClick={handleAudioClick}
+      disabled={isPlaying}
+      aria-label="Play Japanese pronunciation"
+      title="Play pronunciation"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+      </svg>
+    </button>
+  );
 
   return (
     <div className="w-full max-w-2xl h-80 mb-6 cursor-pointer" onClick={onFlip}>
@@ -31,6 +66,7 @@ export function Card({ card, isFlipped, isReversed, onFlip }) {
           <span className="absolute top-4 right-5 text-xs text-border">
             L{card.lesson}
           </span>
+          {audioButton}
           <div className={`text-center text-ink leading-tight ${frontStyle}`}>
             {frontText}
           </div>
@@ -56,6 +92,7 @@ export function Card({ card, isFlipped, isReversed, onFlip }) {
           <span className="absolute top-4 right-5 text-xs text-border">
             L{card.lesson}
           </span>
+          {audioButton}
           <div className={`text-center text-ink leading-tight ${backStyle}`}>
             {backText}
           </div>

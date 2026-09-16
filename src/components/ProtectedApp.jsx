@@ -4,6 +4,7 @@ import { useFlashcards } from '../hooks/useFlashcards';
 import { useCardNavigation } from '../hooks/useCardNavigation';
 import { useSupabase } from '../hooks/useSupabase';
 import { useAuth } from '../hooks/useAuth';
+import { playJapaneseAudio, getStoredVoice } from '../utils/edgeTts';
 import '../index.css';
 
 function ProtectedApp({ levelFilter = 'n5' }) {
@@ -13,14 +14,16 @@ function ProtectedApp({ levelFilter = 'n5' }) {
   const [localDeck, setLocalDeck] = useState([]);
   const [exitDir, setExitDir] = useState(null);
   const [isSelectorOpen, setIsSelectorOpen] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+
 
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-300, 300], [-14, 14]);
   const cardOpacity = useTransform(x, [-500, -260, 0, 260, 500], [0.35, 0.95, 1, 0.95, 0.35]);
 
-  // Underneath card scale and opacity for tactile card-deck feel
-  const nextCardScale = useTransform(x, [-260, 0, 260], [1, 0.96, 1]);
-  const nextCardOpacity = useTransform(x, [-260, 0, 260], [1, 0.85, 1]);
+  // Underneath card scale and opacity — hidden at rest, only visible during swipe
+  const nextCardScale = useTransform(x, [-260, 0, 260], [1, 0, 1]);
+  const nextCardOpacity = useTransform(x, [-260, 0, 260], [1, 0, 1]);
 
   // Subtle background color tint when swiping right (green) or left (red)
   const bgOverlay = useTransform(x, [-160, -25, 0, 25, 160], [
@@ -58,6 +61,21 @@ function ProtectedApp({ levelFilter = 'n5' }) {
     markIncorrect,
     reset
   } = useCardNavigation(localDeck);
+
+  const handleAudioClick = async (e) => {
+    e.stopPropagation();
+    const card = localDeck[currentIndex];
+    if (isPlaying || !card) return;
+    setIsPlaying(true);
+    try {
+      const voice = getStoredVoice();
+      await playJapaneseAudio(card.jp, voice);
+    } catch (err) {
+      console.error('Failed to play audio:', err);
+    } finally {
+      setIsPlaying(false);
+    }
+  };
 
   useEffect(() => {
     const levelDeck = deck.filter(c => levelFilter === 'n5' ? c.lesson <= 25 : c.lesson >= 26 && c.lesson <= 50);
@@ -150,6 +168,39 @@ function ProtectedApp({ levelFilter = 'n5' }) {
       }
     });
   };
+  
+  const keyboardCmdRef = useRef(() => {});
+
+  useEffect(() => {
+    if (sessionComplete || isLoading || error) return;
+    keyboardCmdRef.current = (e) => {
+      const target = e.target;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      if (e.key === ' ' || e.key === 'Enter') {
+        if (tag === 'BUTTON') return;
+        e.preventDefault();
+        flipCard();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        if (!isFlipped) {
+          nextCard();
+        } else {
+          triggerSwipe(1);
+        }
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        if (!isFlipped) {
+          prevCard();
+        } else {
+          triggerSwipe(-1);
+        }
+      }
+    };
+    window.addEventListener('keydown', keyboardCmdRef.current);
+    return () => window.removeEventListener('keydown', keyboardCmdRef.current);
+  }, [isFlipped, isLoading, error, sessionComplete, flipCard, nextCard, prevCard, triggerSwipe]);
 
   const handleDragStart = () => {
     isDraggingRef.current = true;
@@ -399,6 +450,18 @@ function ProtectedApp({ levelFilter = 'n5' }) {
                         {isReversed ? '' : currentCard?.kanji}
                       </div>
                       <span className="tap-hint">tap to reveal</span>
+                      <button
+                        className={`card-audio-btn${isPlaying ? ' playing' : ''}`}
+                        onClick={handleAudioClick}
+                        disabled={isPlaying}
+                        aria-label="Play Japanese pronunciation"
+                        title="Play pronunciation"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        </svg>
+                      </button>
                     </div>
 
                     {/* Back Face */}
@@ -426,6 +489,18 @@ function ProtectedApp({ levelFilter = 'n5' }) {
                               : currentCard?.note}
                           </div>
                           <span className="tap-hint">tap to flip back</span>
+                          <button
+                            className={`card-audio-btn${isPlaying ? ' playing' : ''}`}
+                            onClick={handleAudioClick}
+                            disabled={isPlaying}
+                            aria-label="Play Japanese pronunciation"
+                            title="Play pronunciation"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                          </button>
                         </>
                       )}
                     </div>
