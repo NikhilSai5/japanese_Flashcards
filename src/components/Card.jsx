@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { playJapaneseAudio, getStoredVoice } from '../utils/edgeTts';
+import { useVoice } from '../contexts/VoiceContext';
 
 export function Card({ card, isFlipped, isReversed, onFlip }) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const { speak } = useVoice();
 
   if (!card) {
     return (
@@ -15,11 +16,9 @@ export function Card({ card, isFlipped, isReversed, onFlip }) {
   const handleAudioClick = async (e) => {
     e.stopPropagation();
     if (isPlaying) return;
-    
     setIsPlaying(true);
     try {
-      const voice = getStoredVoice();
-      await playJapaneseAudio(card.jp, voice);
+      await speak(card.jp);
     } catch (error) {
       console.error('Failed to play audio:', error);
     } finally {

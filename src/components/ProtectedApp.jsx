@@ -4,12 +4,13 @@ import { useFlashcards } from '../hooks/useFlashcards';
 import { useCardNavigation } from '../hooks/useCardNavigation';
 import { useSupabase } from '../hooks/useSupabase';
 import { useAuth } from '../hooks/useAuth';
-import { playJapaneseAudio, getStoredVoice } from '../utils/edgeTts';
+import { useVoice } from '../contexts/VoiceContext';
 import '../index.css';
 
 function ProtectedApp({ levelFilter = 'n5' }) {
   const db = useSupabase();
   const { authUser } = useAuth();
+  const { speak } = useVoice();
   const { lessons, activeLessons, deck, isLoading, error, setActiveLesson, toggleActiveLesson, resetToLesson1 } = useFlashcards();
   const [localDeck, setLocalDeck] = useState([]);
   const [exitDir, setExitDir] = useState(null);
@@ -68,8 +69,7 @@ function ProtectedApp({ levelFilter = 'n5' }) {
     if (isPlaying || !card) return;
     setIsPlaying(true);
     try {
-      const voice = getStoredVoice();
-      await playJapaneseAudio(card.jp, voice);
+      await speak(card.jp);
     } catch (err) {
       console.error('Failed to play audio:', err);
     } finally {
