@@ -5,7 +5,7 @@ import { useVoice } from '../contexts/VoiceContext';
 
 export default function Navbar() {
   const { authUser, logout } = useAuth();
-  const { selectedVoice, voices, voicesLoading, selectVoice, speak } = useVoice();
+  const { selectedVoice, voices, voicesLoading, selectVoice, speed, changeSpeed, speak } = useVoice();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [isPreviewing, setIsPreviewing] = useState(false);
   const settingsRef = useRef(null);
@@ -137,16 +137,16 @@ export default function Navbar() {
                   ) : (
                     voices.map((voice) => (
                       <button
-                        key={voice.name}
-                        className={`settings-voice-option ${selectedVoice === voice.name ? 'active' : ''}`}
-                        onClick={() => selectVoice(voice.name)}
-                        title={voice.name}
+                        key={voice.id}
+                        className={`settings-voice-option ${selectedVoice === voice.id ? 'active' : ''}`}
+                        onClick={() => selectVoice(voice.id)}
+                        title={voice.label}
                       >
                         <span className="voice-option-gender">
                           {voice.gender === 'female' ? '♀' : voice.gender === 'male' ? '♂' : '◈'}
                         </span>
                         <span className="voice-option-name">{voice.label}</span>
-                        {selectedVoice === voice.name && (
+                        {selectedVoice === voice.id && (
                           <svg className="voice-option-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                           </svg>
@@ -154,6 +154,27 @@ export default function Navbar() {
                       </button>
                     ))
                   )}
+                </div>
+
+                <div className="settings-dropdown-header" style={{ marginTop: '4px', borderTop: '1px solid var(--cream)' }}>
+                  <span className="settings-label">Speed</span>
+                  <span style={{ fontSize: '0.65rem', fontFamily: "'DM Mono', monospace", color: 'var(--muted)' }}>{speed.toFixed(1)}x</span>
+                </div>
+                <div className="settings-dropdown-options" style={{ padding: '8px 12px' }}>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="1.5"
+                    step="0.1"
+                    value={speed}
+                    onChange={(e) => changeSpeed(parseFloat(e.target.value))}
+                    style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--ink)' }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.55rem', color: 'var(--muted)', marginTop: '4px', fontFamily: "'DM Mono', monospace" }}>
+                    <span>0.5x</span>
+                    <span>1.0x</span>
+                    <span>1.5x</span>
+                  </div>
                 </div>
               </div>
             )}
