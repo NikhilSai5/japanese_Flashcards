@@ -52,19 +52,21 @@ function ProtectedApp({ levelFilter = 'n5' }) {
     incorrect,
     isFlipped,
     isReversed,
+    isAudioOnly,
     sessionComplete,
     getMissedDeck,
     nextCard,
     prevCard,
     flipCard,
     toggleReverse,
+    toggleAudioOnly,
     markCorrect,
     markIncorrect,
     reset
   } = useCardNavigation(localDeck);
 
   const handleAudioClick = async (e) => {
-    e.stopPropagation();
+    if (e && e.stopPropagation) e.stopPropagation();
     const card = localDeck[currentIndex];
     if (isPlaying || !card) return;
     setIsPlaying(true);
@@ -76,6 +78,23 @@ function ProtectedApp({ levelFilter = 'n5' }) {
       setIsPlaying(false);
     }
   };
+
+  // Auto-play audio when navigating in Audio Only mode
+  useEffect(() => {
+    if (isAudioOnly && !sessionComplete && localDeck[currentIndex]?.jp) {
+      const card = localDeck[currentIndex];
+      let isMounted = true;
+      setIsPlaying(true);
+      speak(card.jp)
+        .catch((err) => console.error('Auto-play audio error:', err))
+        .finally(() => {
+          if (isMounted) setIsPlaying(false);
+        });
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [currentIndex, isAudioOnly, sessionComplete, localDeck, speak]);
 
   useEffect(() => {
     const levelDeck = deck.filter(c => levelFilter === 'n5' ? c.lesson <= 25 : c.lesson >= 26 && c.lesson <= 50);
@@ -182,6 +201,9 @@ function ProtectedApp({ levelFilter = 'n5' }) {
         if (tag === 'BUTTON') return;
         e.preventDefault();
         flipCard();
+      } else if (e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        handleAudioClick();
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
         if (!isFlipped) {
@@ -402,16 +424,30 @@ function ProtectedApp({ levelFilter = 'n5' }) {
                     <div className="card-inner">
                       <div className="card-face front">
                         <span className="card-label">
-                          {isReversed ? 'English' : 'Japanese'}
+                          {isAudioOnly ? 'Audio Only · 音声' : isReversed ? 'English' : 'Japanese'}
                         </span>
                         <span className="card-lesson">L{nextCardData.lesson}</span>
-                        <div className="card-jp" style={isReversed ? { fontFamily: "'DM Serif Display', serif", fontSize: '1.9rem' } : {}}>
-                          {isReversed ? nextCardData.en : nextCardData.jp}
-                        </div>
-                        <div className="card-kanji">
-                          {isReversed ? '' : nextCardData.kanji}
-                        </div>
-                        <span className="tap-hint">tap to reveal</span>
+                        {isAudioOnly ? (
+                          <div className="audio-card-center">
+                            <div className="audio-card-main-btn">
+                              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                              </svg>
+                            </div>
+                            <div className="audio-card-prompt">Audio Only</div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="card-jp" style={isReversed ? { fontFamily: "'DM Serif Display', serif", fontSize: '1.9rem' } : {}}>
+                              {isReversed ? nextCardData.en : nextCardData.jp}
+                            </div>
+                            <div className="card-kanji">
+                              {isReversed ? '' : nextCardData.kanji}
+                            </div>
+                          </>
+                        )}
+                        <span className="tap-hint">{isAudioOnly ? 'tap to reveal meaning' : 'tap to reveal'}</span>
                       </div>
                     </div>
                   </Motion.div>
@@ -440,28 +476,61 @@ function ProtectedApp({ levelFilter = 'n5' }) {
                       </Motion.div>
 
                       <span className="card-label">
-                        {isReversed ? 'English' : 'Japanese'}
+                        {isAudioOnly ? 'Audio Only · 音声' : isReversed ? 'English' : 'Japanese'}
                       </span>
                       <span className="card-lesson">L{currentCard?.lesson}</span>
-                      <div className="card-jp" style={isReversed ? { fontFamily: "'DM Serif Display', serif", fontSize: '1.9rem' } : {}}>
-                        {isReversed ? currentCard?.en : currentCard?.jp}
-                      </div>
-                      <div className="card-kanji">
-                        {isReversed ? '' : currentCard?.kanji}
-                      </div>
-                      <span className="tap-hint">tap to reveal</span>
-                      <button
-                        className={`card-audio-btn${isPlaying ? ' playing' : ''}`}
-                        onClick={handleAudioClick}
-                        disabled={isPlaying}
-                        aria-label="Play Japanese pronunciation"
-                        title="Play pronunciation"
-                      >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                        </svg>
-                      </button>
+
+                      {isAudioOnly ? (
+                        <div className="audio-card-center">
+                          <button
+                            type="button"
+                            className={`audio-card-main-btn${isPlaying ? ' playing' : ''}`}
+                            onClick={handleAudioClick}
+                            disabled={isPlaying}
+                            aria-label="Replay audio pronunciation"
+                            title="Click to replay audio"
+                          >
+                            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                          </button>
+                          <div className="audio-card-prompt">
+                            {isPlaying ? (
+                              <>
+                                <span>Playing</span>
+                                <div className="audio-card-soundwaves">
+                                  <span></span><span></span><span></span><span></span>
+                                </div>
+                              </>
+                            ) : (
+                              <span>Tap icon to replay</span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="card-jp" style={isReversed ? { fontFamily: "'DM Serif Display', serif", fontSize: '1.9rem' } : {}}>
+                            {isReversed ? currentCard?.en : currentCard?.jp}
+                          </div>
+                          <div className="card-kanji">
+                            {isReversed ? '' : currentCard?.kanji}
+                          </div>
+                          <button
+                            className={`card-audio-btn${isPlaying ? ' playing' : ''}`}
+                            onClick={handleAudioClick}
+                            disabled={isPlaying}
+                            aria-label="Play Japanese pronunciation"
+                            title="Play pronunciation"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                          </button>
+                        </>
+                      )}
+                      <span className="tap-hint">{isAudioOnly ? 'tap card to reveal meaning' : 'tap to reveal'}</span>
                     </div>
 
                     {/* Back Face */}
@@ -477,17 +546,37 @@ function ProtectedApp({ levelFilter = 'n5' }) {
                       {isFlipped && (
                         <>
                           <span className="card-label">
-                            {isReversed ? 'Japanese' : 'English'}
+                            {isAudioOnly ? 'English Meaning · 意味' : isReversed ? 'Japanese' : 'English'}
                           </span>
                           <span className="card-lesson">L{currentCard?.lesson}</span>
-                          <div className="card-en" style={isReversed ? { fontFamily: "'Noto Sans JP', sans-serif", fontSize: '2.5rem', fontWeight: '300' } : {}}>
-                            {isReversed ? currentCard?.jp : currentCard?.en}
-                          </div>
-                          <div className="card-note">
-                            {isReversed
-                              ? currentCard?.kanji ? `${currentCard.kanji}${currentCard.note ? ' · ' + currentCard.note : ''}` : currentCard?.note
-                              : currentCard?.note}
-                          </div>
+
+                          {isAudioOnly ? (
+                            <>
+                              <div className="card-en">
+                                {currentCard?.en}
+                              </div>
+                              <div className="card-audio-reveal-jp">
+                                <span className="card-audio-reveal-kana">{currentCard?.jp}</span>
+                                {currentCard?.kanji && (
+                                  <span className="card-audio-reveal-kanji">【{currentCard.kanji}】</span>
+                                )}
+                              </div>
+                              {currentCard?.note && (
+                                <div className="card-note">{currentCard.note}</div>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <div className="card-en" style={isReversed ? { fontFamily: "'Noto Sans JP', sans-serif", fontSize: '2.5rem', fontWeight: '300' } : {}}>
+                                {isReversed ? currentCard?.jp : currentCard?.en}
+                              </div>
+                              <div className="card-note">
+                                {isReversed
+                                  ? currentCard?.kanji ? `${currentCard.kanji}${currentCard.note ? ' · ' + currentCard.note : ''}` : currentCard?.note
+                                  : currentCard?.note}
+                              </div>
+                            </>
+                          )}
                           <span className="tap-hint">tap to flip back</span>
                           <button
                             className={`card-audio-btn${isPlaying ? ' playing' : ''}`}
@@ -549,6 +638,12 @@ function ProtectedApp({ levelFilter = 'n5' }) {
                   onClick={toggleReverse}
                 >
                   ⇅ Reverse mode
+                </button>
+                <button
+                  className={`audio-only-btn ${isAudioOnly ? 'active' : ''}`}
+                  onClick={toggleAudioOnly}
+                >
+                  🔊 Audio only
                 </button>
                 <button className="reset-btn" onClick={reset}>
                   ↻ Reset

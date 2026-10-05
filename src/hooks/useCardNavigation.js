@@ -6,6 +6,7 @@ export function useCardNavigation(deck) {
   const [incorrect, setIncorrect] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isReversed, setIsReversed] = useState(false);
+  const [isAudioOnly, setIsAudioOnly] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
   const [missedCards, setMissedCards] = useState([]);
   const missedCardsRef = useRef([]);
@@ -61,7 +62,22 @@ export function useCardNavigation(deck) {
   }, []);
 
   const toggleReverse = useCallback(() => {
-    setIsReversed(prev => !prev);
+    setIsReversed(prev => {
+      if (!prev) {
+        setIsAudioOnly(false);
+      }
+      return !prev;
+    });
+    setIsFlipped(false);
+  }, []);
+
+  const toggleAudioOnly = useCallback(() => {
+    setIsAudioOnly(prev => {
+      if (!prev) {
+        setIsReversed(false);
+      }
+      return !prev;
+    });
     setIsFlipped(false);
   }, []);
 
@@ -102,6 +118,7 @@ export function useCardNavigation(deck) {
     incorrect,
     isFlipped,
     isReversed,
+    isAudioOnly,
     sessionComplete,
     missedCards,
     getMissedDeck,
@@ -110,6 +127,7 @@ export function useCardNavigation(deck) {
     flipCard,
     shuffle,
     toggleReverse,
+    toggleAudioOnly,
     markCorrect,
     markIncorrect,
     reset
