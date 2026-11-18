@@ -3557,3 +3557,770 @@ header {
     gap: 12px;
   }
 }
+
+
+/* ========================================================================
+   JIDOSHI / TADOSHI (VERB PAIRS) STYLES
+   ======================================================================== */
+
+/* N4 Subnavigation Tabs (Vocab vs Pairs) */
+.n4-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  width: 100%;
+  max-width: 520px;
+}
+
+.n4-toggle-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 2px 3px 0 var(--cream);
+  transition: all 0.15s ease;
+}
+
+.n4-toggle-tab:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+
+.n4-toggle-tab.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+  box-shadow: 2px 3px 0 rgba(0, 0, 0, 0.15);
+}
+
+.n4-tab-icon {
+  font-size: 1rem;
+}
+
+.n4-tab-badge {
+  background: var(--red);
+  color: #fff;
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.n4-toggle-tab.active .n4-tab-badge {
+  background: #fff;
+  color: var(--ink);
+}
+
+/* N4 Shortcut Banner inside standard vocab page */
+.n4-pairs-shortcut-banner {
+  width: 100%;
+  max-width: 520px;
+  background: linear-gradient(135deg, #fff 0%, #faf6ef 100%);
+  border: 1.5px dashed var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 22px;
+  box-shadow: 2px 4px 0 var(--cream);
+  transition: all 0.2s ease;
+}
+
+.n4-pairs-shortcut-banner:hover {
+  border-color: var(--ink);
+}
+
+.n4-pairs-shortcut-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.n4-pairs-shortcut-icon {
+  font-size: 1.4rem;
+  color: var(--gold);
+}
+
+.n4-pairs-shortcut-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.n4-pairs-shortcut-desc {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.n4-pairs-shortcut-action {
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.n4-pairs-shortcut-action:hover {
+  background: var(--red);
+  transform: translateY(-1px);
+}
+
+/* Verb Pairs View Container */
+.verb-pairs-view {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Top bar with Back button and count pill */
+.vp-header-bar {
+  width: 100%;
+  max-width: 540px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 25;
+}
+
+.vp-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 2px 2px 0 var(--cream);
+  position: relative;
+  z-index: 25;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.vp-back-btn:hover {
+  border-color: var(--ink);
+  background: var(--paper);
+  transform: translateX(-2px);
+}
+
+.vp-badge-pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  background: var(--cream);
+  color: var(--ink);
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+
+/* Controls panel for Filtering Lesson & Study Mode */
+.vp-controls-panel {
+  width: 100%;
+  max-width: 540px;
+  background: #fff;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  box-shadow: 3px 4px 0 var(--cream);
+}
+
+.vp-filter-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vp-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vp-control-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.vp-lesson-select {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border);
+  background: #faf8f5;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--ink);
+  cursor: pointer;
+  flex: 1;
+}
+
+.vp-lesson-select:focus {
+  outline: none;
+  border-color: var(--ink);
+}
+
+.vp-mode-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vp-mode-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.vp-mode-pill {
+  background: #faf8f5;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.vp-mode-pill:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.vp-mode-pill.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Card Stack Dimensions for Verb Pairs */
+.vp-stack-container {
+  height: 390px;
+  max-width: 540px;
+  width: 100%;
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.vp-card-wrapper {
+  max-width: 540px;
+  height: 390px;
+  margin-bottom: 0;
+}
+
+.vp-card-face {
+  padding: 24px 20px;
+  justify-content: flex-start;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* ── Front Face: Mode 1 (Contrast) ── */
+.vp-front-contrast {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex: 1;
+  gap: 12px;
+  text-align: center;
+}
+
+.vp-concept-en {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem;
+  color: var(--ink);
+  line-height: 1.3;
+  max-width: 90%;
+}
+
+.vp-contrast-kana-badge {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--cream);
+  border: 1.5px solid var(--border);
+  padding: 6px 16px;
+  border-radius: 20px;
+  letter-spacing: 0.05em;
+}
+
+.vp-front-slots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 4px;
+}
+
+.vp-slot {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #faf8f5;
+}
+
+.vp-slot.jidoshi {
+  border-color: rgba(27, 92, 118, 0.3);
+  background: #f3f8fa;
+}
+
+.vp-slot.tadoshi {
+  border-color: rgba(168, 56, 36, 0.3);
+  background: #fbf4f2;
+}
+
+.vp-slot-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.vp-slot-badge.jidoshi {
+  background: #1b5c76;
+  color: #fff;
+}
+
+.vp-slot-badge.tadoshi {
+  background: #a83824;
+  color: #fff;
+}
+
+.vp-slot-meaning {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.vp-slot-prompt {
+  font-family: 'DM Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--border);
+}
+
+.vp-slot-divider {
+  font-size: 1.2rem;
+  color: var(--muted);
+}
+
+/* ── Front Face: Modes 2 & 3 (Single Prompt) ── */
+.vp-front-single {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex: 1;
+  gap: 14px;
+  text-align: center;
+}
+
+.vp-single-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vp-badge-tag {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.vp-badge-tag.jidoshi {
+  background: #1b5c76;
+  color: #fff;
+}
+
+.vp-badge-tag.tadoshi {
+  background: #a83824;
+  color: #fff;
+}
+
+.vp-single-meaning {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+
+.vp-single-verb {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.vp-verb-kana-main {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+}
+
+.vp-single-example {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.05rem;
+  background: #faf8f5;
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 6px;
+  color: var(--ink);
+}
+
+.vp-single-question {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.vp-question-bubble {
+  background: var(--cream);
+  border: 1.5px dashed var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ── Front Face: Mode 4 (Both on Front) ── */
+.vp-front-both {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex: 1;
+  gap: 16px;
+}
+
+.vp-both-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.vp-both-box {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #faf8f5;
+}
+
+.vp-both-box.jidoshi {
+  background: #f3f8fa;
+  border-color: rgba(27, 92, 118, 0.4);
+}
+
+.vp-both-box.tadoshi {
+  background: #fbf4f2;
+  border-color: rgba(168, 56, 36, 0.4);
+}
+
+.vp-both-kana-main {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 6px;
+  letter-spacing: 0.03em;
+}
+
+.vp-both-divider {
+  font-size: 1.4rem;
+  color: var(--muted);
+}
+
+.vp-both-prompt {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* Preview for Underneath Card */
+.vp-front-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 10px;
+}
+
+.vp-front-concept {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.25rem;
+  color: var(--muted);
+}
+
+.vp-front-kana-hint {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+/* ── BACK FACE: Side-by-Side Breakdown ── */
+.vp-back-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: 1;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.vp-back-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.vp-back-col {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  background: #fff;
+}
+
+.vp-back-col.jidoshi {
+  background: #f7fbfc;
+  border-color: rgba(27, 92, 118, 0.35);
+}
+
+.vp-back-col.tadoshi {
+  background: #fdf8f7;
+  border-color: rgba(168, 56, 36, 0.35);
+}
+
+.vp-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.vp-col-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.vp-col-badge.jidoshi {
+  background: #1b5c76;
+  color: #fff;
+}
+
+.vp-col-badge.tadoshi {
+  background: #a83824;
+  color: #fff;
+}
+
+.vp-audio-mini-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.vp-audio-mini-btn:hover {
+  color: var(--ink);
+  transform: scale(1.15);
+}
+
+.vp-audio-mini-btn.playing {
+  color: var(--red);
+  animation: audio-pulse 0.8s infinite alternate;
+}
+
+.vp-col-kana-main {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+}
+
+.vp-col-en {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-top: 4px;
+  line-height: 1.2;
+}
+
+.vp-col-example-box {
+  margin-top: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.vp-example-jp {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 0.82rem;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.vp-audio-text-btn {
+  background: transparent;
+  border: none;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 2px;
+  flex-shrink: 0;
+  transition: transform 0.1s ease;
+}
+
+.vp-audio-text-btn:hover {
+  transform: scale(1.2);
+}
+
+.vp-audio-text-btn.playing {
+  animation: audio-pulse 0.8s infinite alternate;
+}
+
+.vp-back-example-en {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--ink);
+  background: #faf8f5;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  line-height: 1.3;
+}
+
+.vp-back-note {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  padding: 0 4px;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 520px) {
+  .vp-stack-container,
+  .vp-card-wrapper {
+    height: 440px;
+  }
+
+  .vp-back-columns {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .vp-front-slots {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .vp-slot-divider {
+    display: none;
+  }
+
+  .vp-concept-en {
+    font-size: 1.15rem;
+  }
+
+  .vp-contrast-kana-badge {
+    font-size: 0.95rem;
+  }
+
+  .n4-pairs-shortcut-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .n4-pairs-shortcut-action {
+    width: 100%;
+    text-align: center;
+  }
+}

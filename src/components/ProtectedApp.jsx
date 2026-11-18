@@ -1,13 +1,34 @@
 import { useState, useEffect, useRef } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion as Motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useFlashcards } from '../hooks/useFlashcards';
 import { useCardNavigation } from '../hooks/useCardNavigation';
 import { useSupabase } from '../hooks/useSupabase';
 import { useAuth } from '../hooks/useAuth';
 import { useVoice } from '../contexts/VoiceContext';
+import VerbPairsFlashcards from './VerbPairsFlashcards';
 import '../index.css';
 
 function ProtectedApp({ levelFilter = 'n5' }) {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState(() => searchParams.get('view') || 'vocab');
+
+  useEffect(() => {
+    const view = searchParams.get('view') || 'vocab';
+    setActiveTab(view);
+  }, [searchParams]);
+
+  const handleSwitchToPairs = () => {
+    setActiveTab('pairs');
+    navigate('/n4?view=pairs');
+  };
+
+  const handleBackToVocab = () => {
+    setActiveTab('vocab');
+    navigate('/n4');
+  };
+
   const db = useSupabase();
   const { authUser } = useAuth();
   const { speak } = useVoice();
@@ -255,6 +276,10 @@ function ProtectedApp({ levelFilter = 'n5' }) {
   const currentCard = localDeck[currentIndex];
   const nextCardData = localDeck[currentIndex + 1];
 
+  if (levelFilter === 'n4' && activeTab === 'pairs') {
+    return <VerbPairsFlashcards onBackToVocab={handleBackToVocab} />;
+  }
+
   return (
     <>
       <div className={`loading-overlay ${!isLoading ? 'hidden' : ''}`}>
@@ -276,6 +301,47 @@ function ProtectedApp({ levelFilter = 'n5' }) {
             <h2 className="vocab-page-title">語彙 <span>Vocabulary · JLPT {levelLabel}</span></h2>
             <p className="vocab-page-subtitle">Minna no Nihongo · {levelRange}</p>
           </div>
+
+          {levelFilter === 'n4' && (
+            <div className="n4-section-toggle">
+              <button
+                type="button"
+                className={`n4-toggle-tab ${activeTab !== 'pairs' ? 'active' : ''}`}
+                onClick={handleBackToVocab}
+              >
+                <span className="n4-tab-icon">📖</span>
+                <span>N4 Vocabulary (L26–50)</span>
+              </button>
+              <button
+                type="button"
+                className={`n4-toggle-tab ${activeTab === 'pairs' ? 'active' : ''}`}
+                onClick={handleSwitchToPairs}
+              >
+                <span className="n4-tab-icon">⇄</span>
+                <span>自動詞・他動詞 (Jidoshi / Tadoshi Pairs)</span>
+                <span className="n4-tab-badge">64</span>
+              </button>
+            </div>
+          )}
+
+          {levelFilter === 'n4' && (
+            <div className="n4-pairs-shortcut-banner">
+              <div className="n4-pairs-shortcut-left">
+                <span className="n4-pairs-shortcut-icon">⚡</span>
+                <div>
+                  <div className="n4-pairs-shortcut-title">自動詞・他動詞 (Intransitive / Transitive) Flashcards</div>
+                  <div className="n4-pairs-shortcut-desc">Practice 64 verb pairs from Supabase with が vs を particle contrast &amp; audio</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="n4-pairs-shortcut-action"
+                onClick={handleSwitchToPairs}
+              >
+                Study Pairs →
+              </button>
+            </div>
+          )}
 
           {/* Lesson Selector Card (Accordion & Number Grid from screenshot) */}
           <div className="lesson-card-container">
