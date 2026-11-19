@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useN4Kanji } from '../hooks/useN4Kanji';
 import { useVoice } from '../contexts/VoiceContext';
 import '../index.css';
 
 export default function N4KanjiDashboard() {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlMode = searchParams.get('mode') === 'vocab' ? 'vocab' : 'reading';
 
@@ -41,14 +42,14 @@ export default function N4KanjiDashboard() {
   // Local study deck
   const [deck, setDeck] = useState([]);
 
-  // Sync mode with URL if changed
+  // Sync mode with URL if changed (e.g. browser back/forward)
   useEffect(() => {
     if (urlMode !== activeMode) {
       setActiveMode(urlMode);
     }
   }, [urlMode, activeMode, setActiveMode]);
 
-  // Sync deck when rawDeck changes
+  // Sync local deck when rawDeck changes (from fetch, lesson filter, or search filter)
   useEffect(() => {
     setDeck([...rawDeck]);
     setCurrentIndex(0);
@@ -217,6 +218,14 @@ export default function N4KanjiDashboard() {
   if (isLoading) {
     return (
       <div className="kanji-dashboard" id="n4-kanji-loading">
+        <div className="vp-header-bar" style={{ maxWidth: '850px', margin: '0 auto 16px', width: '100%' }}>
+          <button type="button" className="vp-back-btn" onClick={() => navigate('/n4')}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>Back to N4 Vocab</span>
+          </button>
+        </div>
         <div className="grammar-loading">
           <div className="grammar-loading-char">漢</div>
           <div className="grammar-loading-text">Loading N4 Kanji from Supabase...</div>
@@ -232,6 +241,14 @@ export default function N4KanjiDashboard() {
   if (error) {
     return (
       <div className="kanji-dashboard" id="n4-kanji-error">
+        <div className="vp-header-bar" style={{ maxWidth: '850px', margin: '0 auto 16px', width: '100%' }}>
+          <button type="button" className="vp-back-btn" onClick={() => navigate('/n4')}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>Back to N4 Vocab</span>
+          </button>
+        </div>
         <div className="grammar-error">
           <div className="grammar-error-icon">⚠</div>
           <div className="grammar-error-title">Could not load N4 Kanji</div>
@@ -251,6 +268,31 @@ export default function N4KanjiDashboard() {
 
   return (
     <div className="kanji-dashboard" id="n4-kanji-page">
+      {/* Top Header Bar with Back Button */}
+      <div className="vp-header-bar" style={{ maxWidth: '850px', margin: '0 auto 16px', width: '100%' }}>
+        <button
+          type="button"
+          className="vp-back-btn"
+          onClick={() => {
+            if (view === 'browse') {
+              setView('study');
+            } else {
+              navigate('/n4');
+            }
+          }}
+          title={view === 'browse' ? 'Back to Cards study' : 'Return to N4 Vocabulary'}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          <span>{view === 'browse' ? 'Back to Flashcards' : 'Back to N4 Vocab'}</span>
+        </button>
+
+        <div className="vp-badge-pill">
+          <span>{deck.length} {activeMode === 'reading' ? 'Kanji Readings' : 'Kanji Vocab'} · N4</span>
+        </div>
+      </div>
+
       {/* Page Header */}
       <div className="vocab-page-header">
         <h2 className="vocab-page-title">
@@ -319,6 +361,7 @@ export default function N4KanjiDashboard() {
               />
               {searchQuery && (
                 <button
+                  type="button"
                   className="grammar-search-clear"
                   onClick={() => setSearchQuery('')}
                   style={{ top: '6px' }}
@@ -358,6 +401,7 @@ export default function N4KanjiDashboard() {
               {searchQuery ? `No cards match "${searchQuery}".` : 'No cards available for this filter in Supabase.'}
             </div>
             <button
+              type="button"
               className="kf-action-btn"
               onClick={() => {
                 setSelectedLesson('all');
@@ -398,7 +442,7 @@ export default function N4KanjiDashboard() {
               ></div>
             </div>
 
-            {missedCardsRef.current.length === 0 && (
+            {missedCards.length === 0 && (
               <div className="kf-perfect">
                 <span className="kf-perfect-emoji">🌟</span>
                 <span className="kf-perfect-text">Perfect! No missed cards!</span>
@@ -406,25 +450,51 @@ export default function N4KanjiDashboard() {
             )}
 
             <div className="kf-complete-actions">
-              <button className="kf-action-btn" onClick={resetStudy}>↻ Study Again</button>
-              <button className="kf-action-btn" onClick={shuffleDeck}>⇄ Shuffle &amp; Retry</button>
-              <button className="kf-action-btn secondary" onClick={() => setView('browse')}>Browse Grid</button>
+              <button type="button" className="kf-action-btn" onClick={resetStudy}>↻ Study Again</button>
+              <button type="button" className="kf-action-btn" onClick={shuffleDeck}>⇄ Shuffle &amp; Retry</button>
+              <button type="button" className="kf-action-btn secondary" onClick={() => setView('browse')}>Browse Grid</button>
             </div>
 
-            {missedCardsRef.current.length > 0 && (
-              <button className="kf-action-btn kf-study-missed-btn" onClick={studyMissed}>
-                🔁 Review Wrong Cards ({missedCardsRef.current.length})
+            {missedCards.length > 0 && (
+              <button type="button" className="kf-action-btn kf-study-missed-btn" onClick={studyMissed}>
+                🔁 Review Wrong Cards ({missedCards.length})
               </button>
             )}
           </div>
         ) : (
           /* Active Flashcard */
           <>
-            <div className="stats" style={{ marginBottom: '16px' }}>
-              {deck.length} {activeMode === 'reading' ? 'kanji' : 'words'} · {correct} correct this session
+            {/* Header info bar */}
+            <div className="kf-header" style={{ width: '100%', maxWidth: '520px', margin: '0 auto 16px' }}>
+              <button
+                type="button"
+                className="kf-back-btn"
+                onClick={() => setView('browse')}
+                title="Browse all kanji cards in a grid"
+              >
+                ← Grid View
+              </button>
+              <div className="kf-header-info">
+                <span className="kf-header-title">
+                  {activeMode === 'reading' ? '漢字 N4 Readings' : '単語 N4 Vocab'}
+                </span>
+                <span className="kf-header-sub">
+                  {selectedLesson !== 'all' ? `Lesson ${selectedLesson} · ` : ''}{deck.length} cards
+                </span>
+              </div>
+              <div className="kf-header-score">
+                <span className="kf-score-correct">✓ {correct}</span>
+                <span className="kf-score-incorrect">✗ {incorrect}</span>
+              </div>
             </div>
 
-            <div className="kf-card-wrapper" onClick={flipCard}>
+            <div
+              className="kf-card-wrapper"
+              onClick={flipCard}
+              role="button"
+              tabIndex={0}
+              aria-label="Flashcard - click or press Space to flip"
+            >
               <div className={`kf-card-inner ${isFlipped ? 'flipped' : ''}`}>
                 {/* ── FRONT FACE ── */}
                 <div className="kf-card-face kf-front">
@@ -457,8 +527,11 @@ export default function N4KanjiDashboard() {
                         )}
                         <button
                           type="button"
-                          className="card-audio-btn"
-                          onClick={(e) => playAudio(currentCard?.kunyomi || currentCard?.onyomi || currentCard?.kanji, e)}
+                          className={`card-audio-btn ${playingAudio ? 'playing' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playAudio(currentCard?.kunyomi || currentCard?.onyomi || currentCard?.kanji, e);
+                          }}
                           title="Pronounce readings"
                           aria-label="Play pronunciation"
                         >
@@ -492,8 +565,11 @@ export default function N4KanjiDashboard() {
                         </div>
                         <button
                           type="button"
-                          className="card-audio-btn"
-                          onClick={(e) => playAudio(currentCard?.reading_hiragana || currentCard?.word_kanji, e)}
+                          className={`card-audio-btn ${playingAudio ? 'playing' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playAudio(currentCard?.reading_hiragana || currentCard?.word_kanji, e);
+                          }}
                           title="Pronounce word"
                           aria-label="Play pronunciation"
                         >
@@ -511,117 +587,127 @@ export default function N4KanjiDashboard() {
 
                 {/* ── BACK FACE ── */}
                 <div className="kf-card-face kf-back">
-                  {isFlipped && (
-                    <>
-                      <span className="kf-card-label">
-                        {activeMode === 'reading'
-                          ? isReversed ? 'Kanji & Readings' : 'Meaning & Readings'
-                          : isReversed ? 'Kanji Word' : 'Reading & Meaning'}
-                      </span>
-                      <span className="kf-card-counter">
-                        {currentCard?.lesson ? <span style={{ marginRight: '6px' }}>L{currentCard.lesson}</span> : null}
-                        {currentIndex + 1}/{deck.length}
-                      </span>
+                  <span className="kf-card-label">
+                    {activeMode === 'reading'
+                      ? isReversed ? 'Kanji & Readings' : 'Meaning & Readings'
+                      : isReversed ? 'Kanji Word' : 'Reading & Meaning'}
+                  </span>
+                  <span className="kf-card-counter">
+                    {currentCard?.lesson ? <span style={{ marginRight: '6px' }}>L{currentCard.lesson}</span> : null}
+                    {currentIndex + 1}/{deck.length}
+                  </span>
 
-                      {/* KANJI READING MODE: BACK */}
-                      {activeMode === 'reading' && (
-                        isReversed ? (
-                          <>
-                            <div className="kf-card-kanji">{currentCard?.kanji}</div>
-                            <div className="kf-back-readings">
-                              {currentCard?.onyomi && (
-                                <div className="kf-reading-line">
-                                  <span className="kf-reading-badge on">音</span> {currentCard.onyomi}
-                                </div>
-                              )}
-                              {currentCard?.kunyomi && (
-                                <div className="kf-reading-line">
-                                  <span className="kf-reading-badge kun">訓</span> {currentCard.kunyomi}
-                                </div>
-                              )}
+                  {/* KANJI READING MODE: BACK */}
+                  {activeMode === 'reading' && (
+                    isReversed ? (
+                      <>
+                        <div className="kf-card-kanji">{currentCard?.kanji}</div>
+                        <div className="kf-back-readings">
+                          {currentCard?.onyomi && (
+                            <div className="kf-reading-line">
+                              <span className="kf-reading-badge on">音</span> {currentCard.onyomi}
                             </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="kf-back-meaning">{currentCard?.meaning_en}</div>
-                            <div className="kf-back-readings">
-                              {currentCard?.onyomi && (
-                                <div className="kf-reading-line">
-                                  <span className="kf-reading-badge on">音</span> {currentCard.onyomi}
-                                </div>
-                              )}
-                              {currentCard?.kunyomi && (
-                                <div className="kf-reading-line">
-                                  <span className="kf-reading-badge kun">訓</span> {currentCard.kunyomi}
-                                </div>
-                              )}
+                          )}
+                          {currentCard?.kunyomi && (
+                            <div className="kf-reading-line">
+                              <span className="kf-reading-badge kun">訓</span> {currentCard.kunyomi}
                             </div>
-                            <button
-                              type="button"
-                              className="card-audio-btn"
-                              onClick={(e) => playAudio(currentCard?.kunyomi || currentCard?.onyomi || currentCard?.kanji, e)}
-                              title="Pronounce readings"
-                              aria-label="Play pronunciation"
-                            >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                              </svg>
-                            </button>
-                          </>
-                        )
-                      )}
-
-                      {/* KANJI VOCAB MODE: BACK */}
-                      {activeMode === 'vocab' && (
-                        isReversed ? (
-                          <>
-                            <div className="kf-card-kanji" style={{ fontSize: '3rem' }}>
-                              {currentCard?.word_kanji}
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="kf-back-meaning">{currentCard?.meaning_en}</div>
+                        <div className="kf-back-readings">
+                          {currentCard?.onyomi && (
+                            <div className="kf-reading-line">
+                              <span className="kf-reading-badge on">音</span> {currentCard.onyomi}
                             </div>
-                            <div className="n4-vocab-reading" style={{ marginTop: '8px' }}>
-                              {currentCard?.reading_hiragana}
+                          )}
+                          {currentCard?.kunyomi && (
+                            <div className="kf-reading-line">
+                              <span className="kf-reading-badge kun">訓</span> {currentCard.kunyomi}
                             </div>
-                          </>
-                        ) : (
-                          <>
-                            <div className="n4-vocab-reading">
-                              {currentCard?.reading_hiragana}
-                            </div>
-                            <div className="kf-back-meaning" style={{ marginTop: '6px' }}>
-                              {currentCard?.meaning_en}
-                            </div>
-                            {currentCard?.kanji && (
-                              <div className="n4-vocab-kanji-ref">
-                                Target Kanji: <strong>{currentCard.kanji}</strong>
-                              </div>
-                            )}
-                            <button
-                              type="button"
-                              className="card-audio-btn"
-                              onClick={(e) => playAudio(currentCard?.reading_hiragana || currentCard?.word_kanji, e)}
-                              title="Pronounce word"
-                              aria-label="Play pronunciation"
-                            >
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                              </svg>
-                            </button>
-                          </>
-                        )
-                      )}
-
-                      <span className="kf-tap-hint">tap to flip back</span>
-                    </>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          className={`card-audio-btn ${playingAudio ? 'playing' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playAudio(currentCard?.kunyomi || currentCard?.onyomi || currentCard?.kanji, e);
+                          }}
+                          title="Pronounce readings"
+                          aria-label="Play pronunciation"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                          </svg>
+                        </button>
+                      </>
+                    )
                   )}
+
+                  {/* KANJI VOCAB MODE: BACK */}
+                  {activeMode === 'vocab' && (
+                    isReversed ? (
+                      <>
+                        <div className="kf-card-kanji" style={{ fontSize: '3rem' }}>
+                          {currentCard?.word_kanji}
+                        </div>
+                        <div className="n4-vocab-reading" style={{ marginTop: '8px' }}>
+                          {currentCard?.reading_hiragana}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="n4-vocab-reading">
+                          {currentCard?.reading_hiragana}
+                        </div>
+                        <div className="kf-back-meaning" style={{ marginTop: '6px' }}>
+                          {currentCard?.meaning_en}
+                        </div>
+                        {currentCard?.kanji && (
+                          <div className="n4-vocab-kanji-ref">
+                            Target Kanji: <strong>{currentCard.kanji}</strong>
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          className={`card-audio-btn ${playingAudio ? 'playing' : ''}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playAudio(currentCard?.reading_hiragana || currentCard?.word_kanji, e);
+                          }}
+                          title="Pronounce word"
+                          aria-label="Play pronunciation"
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                          </svg>
+                        </button>
+                      </>
+                    )
+                  )}
+
+                  <span className="kf-tap-hint">tap to flip back</span>
                 </div>
               </div>
             </div>
 
             {/* Navigation buttons */}
             <div className="nav">
-              <button className="nav-btn" onClick={prevCard} disabled={currentIndex === 0}>
+              <button
+                type="button"
+                className="nav-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevCard();
+                }}
+                disabled={currentIndex === 0}
+              >
                 ← Prev
               </button>
               <div className="progress-ring">
@@ -645,33 +731,73 @@ export default function N4KanjiDashboard() {
                   <span style={{ fontSize: '0.5rem', color: 'var(--border)' }}>{deck.length}</span>
                 </span>
               </div>
-              <button className="nav-btn" onClick={nextCard} disabled={currentIndex === deck.length - 1}>
+              <button
+                type="button"
+                className="nav-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextCard();
+                }}
+                disabled={currentIndex === deck.length - 1}
+              >
                 Next →
               </button>
             </div>
 
             {/* Score buttons (shown when flipped) */}
             <div className="score-row" style={{ display: isFlipped ? 'flex' : 'none' }}>
-              <button className="score-btn wrong" onClick={markIncorrect}>
+              <button
+                type="button"
+                className="score-btn wrong"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  markIncorrect();
+                }}
+              >
                 ✗ Again
               </button>
-              <button className="score-btn right" onClick={markCorrect}>
+              <button
+                type="button"
+                className="score-btn right"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  markCorrect();
+                }}
+              >
                 ✓ Got it
               </button>
             </div>
 
             {/* Bottom controls */}
             <div className="bottom-row">
-              <button className="shuffle-btn" onClick={shuffleDeck}>
+              <button
+                type="button"
+                className="shuffle-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  shuffleDeck();
+                }}
+              >
                 ⇄ Shuffle deck
               </button>
               <button
+                type="button"
                 className={`reverse-btn ${isReversed ? 'active' : ''}`}
-                onClick={toggleReverse}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleReverse();
+                }}
               >
                 ⇅ Reverse mode
               </button>
-              <button className="reset-btn" onClick={resetStudy}>
+              <button
+                type="button"
+                className="reset-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  resetStudy();
+                }}
+              >
                 ↻ Reset
               </button>
             </div>
@@ -679,7 +805,20 @@ export default function N4KanjiDashboard() {
         )
       ) : (
         /* ─── BROWSE GRID VIEW ─── */
-        <div style={{ width: '100%', maxWidth: '850px' }}>
+        <div style={{ width: '100%', maxWidth: '850px', margin: '0 auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+            <button
+              type="button"
+              className="kf-action-btn"
+              onClick={() => setView('study')}
+              style={{ padding: '8px 16px', fontSize: '0.85rem' }}
+            >
+              ← Back to Cards Study ({deck.length})
+            </button>
+            <div className="stats" style={{ margin: 0 }}>
+              Showing {deck.length} {activeMode === 'reading' ? 'kanji' : 'words'} · Click any card to study
+            </div>
+          </div>
           <div className="kanji-grid">
             {deck.map((item, idx) => (
               <div

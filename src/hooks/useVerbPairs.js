@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../config/supabase';
 
 export function useVerbPairs() {
@@ -34,16 +34,20 @@ export function useVerbPairs() {
   }, [fetchPairs]);
 
   // Lessons list derived dynamically from the Supabase data
-  const lessons = ['all', ...new Set(allPairs.map(p => p.lesson).filter(Boolean))].sort((a, b) => {
-    if (a === 'all') return -1;
-    if (b === 'all') return 1;
-    return a - b;
-  });
+  const lessons = useMemo(() => {
+    return ['all', ...new Set(allPairs.map(p => p.lesson).filter(Boolean))].sort((a, b) => {
+      if (a === 'all') return -1;
+      if (b === 'all') return 1;
+      return a - b;
+    });
+  }, [allPairs]);
 
-  const deck = allPairs.filter(p => {
-    if (selectedLesson === 'all') return true;
-    return p.lesson === Number(selectedLesson);
-  });
+  const deck = useMemo(() => {
+    return allPairs.filter(p => {
+      if (selectedLesson === 'all') return true;
+      return p.lesson === Number(selectedLesson);
+    });
+  }, [allPairs, selectedLesson]);
 
   return {
     allPairs,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../config/supabase';
 
 export function useN4Kanji() {
@@ -53,41 +53,47 @@ export function useN4Kanji() {
   }, [fetchData]);
 
   // Derived current raw list based on active mode
-  const currentRawList = activeMode === 'reading' ? readingList : vocabList;
+  const currentRawList = useMemo(() => {
+    return activeMode === 'reading' ? readingList : vocabList;
+  }, [activeMode, readingList, vocabList]);
 
   // Extract unique sorted lessons for the current mode
-  const lessons = ['all', ...new Set(currentRawList.map((item) => item.lesson).filter(Boolean))].sort((a, b) => {
-    if (a === 'all') return -1;
-    if (b === 'all') return 1;
-    return Number(a) - Number(b);
-  });
+  const lessons = useMemo(() => {
+    return ['all', ...new Set(currentRawList.map((item) => item.lesson).filter(Boolean))].sort((a, b) => {
+      if (a === 'all') return -1;
+      if (b === 'all') return 1;
+      return Number(a) - Number(b);
+    });
+  }, [currentRawList]);
 
   // Filter current deck based on selectedLesson and searchQuery
-  const filteredDeck = currentRawList.filter((item) => {
-    const matchesLesson =
-      selectedLesson === 'all' || String(item.lesson) === String(selectedLesson);
+  const filteredDeck = useMemo(() => {
+    return currentRawList.filter((item) => {
+      const matchesLesson =
+        selectedLesson === 'all' || String(item.lesson) === String(selectedLesson);
 
-    if (!matchesLesson) return false;
+      if (!matchesLesson) return false;
 
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase().trim();
+      if (!searchQuery) return true;
+      const q = searchQuery.toLowerCase().trim();
 
-    if (activeMode === 'reading') {
-      return (
-        (item.kanji && item.kanji.includes(q)) ||
-        (item.meaning_en && item.meaning_en.toLowerCase().includes(q)) ||
-        (item.onyomi && item.onyomi.includes(q)) ||
-        (item.kunyomi && item.kunyomi.includes(q))
-      );
-    } else {
-      return (
-        (item.word_kanji && item.word_kanji.includes(q)) ||
-        (item.reading_hiragana && item.reading_hiragana.includes(q)) ||
-        (item.meaning_en && item.meaning_en.toLowerCase().includes(q)) ||
-        (item.kanji && item.kanji.includes(q))
-      );
-    }
-  });
+      if (activeMode === 'reading') {
+        return (
+          (item.kanji && item.kanji.includes(q)) ||
+          (item.meaning_en && item.meaning_en.toLowerCase().includes(q)) ||
+          (item.onyomi && item.onyomi.includes(q)) ||
+          (item.kunyomi && item.kunyomi.includes(q))
+        );
+      } else {
+        return (
+          (item.word_kanji && item.word_kanji.includes(q)) ||
+          (item.reading_hiragana && item.reading_hiragana.includes(q)) ||
+          (item.meaning_en && item.meaning_en.toLowerCase().includes(q)) ||
+          (item.kanji && item.kanji.includes(q))
+        );
+      }
+    });
+  }, [currentRawList, selectedLesson, searchQuery, activeMode]);
 
   return {
     readingList,

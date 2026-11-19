@@ -57,11 +57,6 @@ export default function VerbPairsFlashcards({ onBackToVocab }) {
   const [exitDir, setExitDir] = useState(null);
   const [playingKey, setPlayingKey] = useState(null);
 
-  // Sync initial deck from hook
-  useEffect(() => {
-    setLocalDeck([...initialDeck]);
-  }, [initialDeck]);
-
   const {
     currentIndex,
     correct,
@@ -76,6 +71,12 @@ export default function VerbPairsFlashcards({ onBackToVocab }) {
     markIncorrect,
     reset
   } = useCardNavigation(localDeck);
+
+  // Sync initial deck from hook
+  useEffect(() => {
+    setLocalDeck([...initialDeck]);
+    reset();
+  }, [initialDeck, reset]);
 
   // Motion values for swipe
   const x = useMotionValue(0);
