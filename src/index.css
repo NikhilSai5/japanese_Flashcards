@@ -4324,3 +4324,55 @@ header {
     text-align: center;
   }
 }
+
+
+/* ========================================================================
+   N4 KANJI DASHBOARD & FLASHCARD STYLES
+   ======================================================================== */
+
+.n4-target-kanji-pill {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: var(--cream);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.n4-target-kanji-pill .target-char {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 700;
+  color: var(--red);
+  font-size: 0.95rem;
+}
+
+.n4-vocab-reading {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+.n4-vocab-kanji-ref {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 10px;
+  background: #faf8f5;
+  border: 1px dashed var(--border);
+  padding: 4px 12px;
+  border-radius: 6px;
+}
+
+.n4-vocab-kanji-ref strong {
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--red);
+  font-size: 0.95rem;
+}

@@ -67,7 +67,15 @@ export default function Navbar() {
             id="nav-kanji"
           >
             <span className="navbar-link-jp">漢字</span>
-            <span className="navbar-link-en">Kanji</span>
+            <span className="navbar-link-en">N5 Kanji</span>
+          </NavLink>
+          <NavLink
+            to="/n4-kanji"
+            className={({ isActive }) => `navbar-link ${isActive ? 'active' : ''}`}
+            id="nav-n4-kanji"
+          >
+            <span className="navbar-link-jp">漢字</span>
+            <span className="navbar-link-en">N4 Kanji</span>
           </NavLink>
           <NavLink
             to="/grammar"
