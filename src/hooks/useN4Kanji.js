@@ -9,7 +9,7 @@ export function useN4Kanji() {
 
   // Active sub-tab / mode: 'reading' | 'vocab'
   const [activeMode, setActiveMode] = useState('reading');
-  const [selectedLesson, setSelectedLesson] = useState('all');
+  const [activeLessons, setActiveLessons] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState('');
 
   const fetchData = useCallback(async () => {
@@ -57,20 +57,65 @@ export function useN4Kanji() {
     return activeMode === 'reading' ? readingList : vocabList;
   }, [activeMode, readingList, vocabList]);
 
-  // Extract unique sorted lessons for the current mode
+  // Extract unique sorted lesson numbers (e.g. [1, 2, ..., 20])
   const lessons = useMemo(() => {
-    return ['all', ...new Set(currentRawList.map((item) => item.lesson).filter(Boolean))].sort((a, b) => {
-      if (a === 'all') return -1;
-      if (b === 'all') return 1;
-      return Number(a) - Number(b);
-    });
+    return [...new Set(currentRawList.map((item) => Number(item.lesson)).filter(Boolean))].sort((a, b) => a - b);
   }, [currentRawList]);
 
-  // Filter current deck based on selectedLesson and searchQuery
+  // Initialize or maintain valid active lessons when lessons change
+  useEffect(() => {
+    if (lessons.length > 0) {
+      setActiveLessons((prev) => {
+        if (prev.size === 0) {
+          return new Set(lessons);
+        }
+        const valid = new Set([...prev].filter((l) => lessons.includes(l)));
+        return valid.size > 0 ? valid : new Set(lessons);
+      });
+    }
+  }, [lessons]);
+
+  const toggleActiveLesson = useCallback((lesson) => {
+    const num = Number(lesson);
+    setActiveLessons((prev) => {
+      const next = new Set(prev);
+      if (next.has(num)) {
+        next.delete(num);
+      } else {
+        next.add(num);
+      }
+      return next.size === 0 ? new Set([num]) : next;
+    });
+  }, []);
+
+  const selectAllLessons = useCallback(() => {
+    setActiveLessons(new Set(lessons));
+  }, [lessons]);
+
+  const resetToLesson1 = useCallback(() => {
+    if (lessons.length > 0) {
+      setActiveLessons(new Set([lessons[0]]));
+    } else {
+      setActiveLessons(new Set([1]));
+    }
+  }, [lessons]);
+
+  const setActiveLesson = useCallback((selected) => {
+    if (selected === 'all') {
+      setActiveLessons(new Set(lessons));
+    } else {
+      setActiveLessons(new Set([Number(selected)]));
+    }
+  }, [lessons]);
+
+  // Filter current deck based on activeLessons and searchQuery
   const filteredDeck = useMemo(() => {
     return currentRawList.filter((item) => {
+      const itemLesson = Number(item.lesson);
       const matchesLesson =
-        selectedLesson === 'all' || String(item.lesson) === String(selectedLesson);
+        activeLessons.size === 0 ||
+        activeLessons.size === lessons.length ||
+        activeLessons.has(itemLesson);
 
       if (!matchesLesson) return false;
 
@@ -93,17 +138,21 @@ export function useN4Kanji() {
         );
       }
     });
-  }, [currentRawList, selectedLesson, searchQuery, activeMode]);
+  }, [currentRawList, activeLessons, lessons.length, searchQuery, activeMode]);
 
   return {
     readingList,
     vocabList,
     deck: filteredDeck,
     lessons,
+    activeLessons,
+    setActiveLessons,
+    toggleActiveLesson,
+    selectAllLessons,
+    resetToLesson1,
+    setActiveLesson,
     activeMode,
     setActiveMode,
-    selectedLesson,
-    setSelectedLesson,
     searchQuery,
     setSearchQuery,
     isLoading,
