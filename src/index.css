@@ -2103,6 +2103,21 @@ header {
   font-weight: 500;
 }
 
+/* Kanji Flashcard Stack Container */
+.kf-stack-container {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  height: 320px;
+  margin: 0 auto 24px;
+}
+
+@media (max-width: 600px) {
+  .kf-stack-container {
+    height: 280px;
+  }
+}
+
 /* Kanji Flashcard */
 .kf-card-wrapper {
   perspective: 1000px;
@@ -2112,6 +2127,32 @@ header {
   height: 320px;
   margin: 0 auto 24px;
   cursor: pointer;
+}
+
+.kf-card-wrapper.card-top {
+  position: relative;
+  z-index: 2;
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: grab;
+}
+
+.kf-card-wrapper.card-top:active {
+  cursor: grabbing;
+}
+
+.kf-card-wrapper.card-underneath {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+  cursor: default;
+  transform-origin: center center;
 }
 
 .kf-card-inner {

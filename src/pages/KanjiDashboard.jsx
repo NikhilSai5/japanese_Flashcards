@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { motion as Motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useKanji } from '../hooks/useKanji';
 
 export default function KanjiDashboard() {
@@ -31,6 +32,31 @@ export default function KanjiDashboard() {
   const [missedCards, setMissedCards] = useState([]);
   const missedCardsRef = useRef([]);
 
+  // Framer Motion gesture values for left/right swipe
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-300, 300], [-12, 12]);
+  const cardOpacity = useTransform(x, [-500, -260, 0, 260, 500], [0.35, 0.95, 1, 0.95, 0.35]);
+
+  // Underneath card scale and opacity — visible during swipe
+  const nextCardScale = useTransform(x, [-260, 0, 260], [1, 0.95, 1]);
+  const nextCardOpacity = useTransform(x, [-260, 0, 260], [1, 0, 1]);
+
+  // Subtle background color tint when swiping right (green) or left (red)
+  const bgOverlay = useTransform(x, [-160, -25, 0, 25, 160], [
+    'rgba(239, 68, 68, 0.22)',   // red on left swipe
+    'rgba(239, 68, 68, 0.05)',
+    'rgba(0, 0, 0, 0)',
+    'rgba(34, 197, 94, 0.05)',
+    'rgba(34, 197, 94, 0.22)'    // green on right swipe
+  ]);
+
+  // Stamp badge opacity
+  const gotOpacity = useTransform(x, [25, 90], [0, 1]);
+  const againOpacity = useTransform(x, [-25, -90], [0, 1]);
+
+  const [exitDir, setExitDir] = useState(null);
+  const isDraggingRef = useRef(false);
+
   // When switching to study mode, build the deck from the current filtered list
   const startStudy = useCallback(() => {
     if (kanjiList.length === 0) return;
@@ -43,24 +69,10 @@ export default function KanjiDashboard() {
     setStudyComplete(false);
     setMissedCards([]);
     missedCardsRef.current = [];
+    x.jump(0);
+    setExitDir(null);
     setView('study');
-  }, [kanjiList]);
-
-  const shuffleDeck = useCallback(() => {
-    setDeck(prev => {
-      const newDeck = [...prev];
-      for (let i = newDeck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
-      }
-      return newDeck;
-    });
-    setCurrentIndex(0);
-    setIsFlipped(false);
-    setCorrect(0);
-    setIncorrect(0);
-    setStudyComplete(false);
-  }, []);
+  }, [kanjiList, x]);
 
   const flipCard = useCallback(() => {
     setIsFlipped(prev => !prev);
@@ -97,6 +109,68 @@ export default function KanjiDashboard() {
     nextCard();
   }, [nextCard, deck, currentIndex]);
 
+  const triggerSwipe = useCallback((dir) => {
+    if (exitDir) return;
+    setExitDir(dir);
+    const flyDistance = dir * (typeof window !== 'undefined' ? Math.max(window.innerWidth, 500) : 500);
+    animate(x, flyDistance, {
+      type: 'spring',
+      stiffness: 280,
+      damping: 24,
+      onComplete: () => {
+        x.jump(0);
+        setExitDir(null);
+        if (dir > 0) {
+          markCorrect();
+        } else {
+          markIncorrect();
+        }
+      }
+    });
+  }, [exitDir, x, markCorrect, markIncorrect]);
+
+  const handleDragStart = () => {
+    isDraggingRef.current = true;
+  };
+
+  const handleDragEnd = (_e, info) => {
+    const offset = info.offset.x;
+    const velocity = info.velocity.x;
+    if (offset > 70 || velocity > 350) {
+      triggerSwipe(1); // Swiped right: Got it
+    } else if (offset < -70 || velocity < -350) {
+      triggerSwipe(-1); // Swiped left: Again
+    } else {
+      animate(x, 0, { type: 'spring', stiffness: 350, damping: 25 });
+    }
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 60);
+  };
+
+  const handleCardClick = () => {
+    if (isDraggingRef.current || exitDir) return;
+    flipCard();
+  };
+
+  const shuffleDeck = useCallback(() => {
+    setDeck(prev => {
+      const newDeck = [...prev];
+      for (let i = newDeck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
+      }
+      return newDeck;
+    });
+    setCurrentIndex(0);
+    setIsFlipped(false);
+    setCorrect(0);
+    setIncorrect(0);
+    setStudyComplete(false);
+    x.jump(0);
+    setExitDir(null);
+  }, [x]);
+
   const resetStudy = useCallback(() => {
     setCurrentIndex(0);
     setIsFlipped(false);
@@ -105,7 +179,9 @@ export default function KanjiDashboard() {
     setStudyComplete(false);
     setMissedCards([]);
     missedCardsRef.current = [];
-  }, []);
+    x.jump(0);
+    setExitDir(null);
+  }, [x]);
 
   const studyMissed = useCallback(() => {
     const missed = missedCardsRef.current;
@@ -118,7 +194,9 @@ export default function KanjiDashboard() {
     setStudyComplete(false);
     setMissedCards([]);
     missedCardsRef.current = [];
-  }, []);
+    x.jump(0);
+    setExitDir(null);
+  }, [x]);
 
   const toggleReverse = useCallback(() => {
     setIsReversed(prev => !prev);
@@ -139,23 +217,15 @@ export default function KanjiDashboard() {
         flipCard();
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        if (isFlipped) {
-          markCorrect();
-        } else {
-          nextCard();
-        }
+        triggerSwipe(1);
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (isFlipped) {
-          markIncorrect();
-        } else {
-          prevCard();
-        }
+        triggerSwipe(-1);
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [view, isFlipped, studyComplete, flipCard, nextCard, prevCard, markCorrect, markIncorrect]);
+  }, [view, studyComplete, flipCard, triggerSwipe]);
 
   // Stats
   const totalKanji = allKanji.length;
@@ -220,7 +290,7 @@ export default function KanjiDashboard() {
               <div className="kf-complete-bar-fill" style={{ width: `${pctCorrect}%` }}></div>
             </div>
 
-            {missedCardsRef.current.length === 0 && (
+            {missedCards.length === 0 && (
               <div className="kf-perfect">
                 <span className="kf-perfect-emoji">🌟</span>
                 <span className="kf-perfect-text">Perfect! No missed cards!</span>
@@ -233,15 +303,17 @@ export default function KanjiDashboard() {
               <button className="kf-action-btn secondary" onClick={() => setView('browse')}>← Back to Browse</button>
             </div>
 
-            {missedCardsRef.current.length > 0 && (
+            {missedCards.length > 0 && (
               <button className="kf-action-btn kf-study-missed-btn" onClick={studyMissed}>
-                🔁 Review Wrong Cards ({missedCardsRef.current.length})
+                🔁 Review Wrong Cards ({missedCards.length})
               </button>
             )}
           </div>
         </div>
       );
     }
+
+    const nextCardData = deck[currentIndex + 1];
 
     return (
       <div className="kanji-dashboard" id="kanji-study">
@@ -260,90 +332,156 @@ export default function KanjiDashboard() {
           </div>
         </div>
 
-        {/* The Flashcard */}
-        <div className="kf-card-wrapper" onClick={flipCard}>
-          <div className={`kf-card-inner ${isFlipped ? 'flipped' : ''}`}>
-            {/* FRONT */}
-            <div className="kf-card-face kf-front">
-              <span className="kf-card-label">
-                {isReversed ? 'Meaning' : 'Kanji'}
-              </span>
-              <span className="kf-card-counter">{currentIndex + 1}/{deck.length}</span>
-
-              {isReversed ? (
-                <>
-                  <div className="kf-card-meaning-front">{currentCard?.meaning}</div>
-                  <div className="kf-card-hint">
-                    {currentCard?.strokes} strokes
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="kf-card-kanji">{currentCard?.character}</div>
-                  <div className="kf-card-strokes-dots">
-                    {Array.from({ length: Math.min(currentCard?.strokes || 0, 15) }).map((_, i) => (
-                      <span key={i} className="kf-stroke-dot"></span>
-                    ))}
-                  </div>
-                </>
-              )}
-              <span className="kf-tap-hint">tap to reveal</span>
-            </div>
-
-            {/* BACK */}
-            <div className="kf-card-face kf-back">
-              {isFlipped && (
-                <>
+        {/* The Flashcard Stack with Left/Right Swipe */}
+        <div className="kf-stack-container">
+          {/* Underneath Card */}
+          {nextCardData && (
+            <Motion.div
+              className="kf-card-wrapper card-underneath"
+              style={{
+                scale: nextCardScale,
+                opacity: nextCardOpacity,
+              }}
+            >
+              <div className="kf-card-inner">
+                <div className="kf-card-face kf-front">
                   <span className="kf-card-label">
-                    {isReversed ? 'Kanji' : 'Details'}
+                    {isReversed ? 'Meaning' : 'Kanji'}
                   </span>
-                  <span className="kf-card-counter">{currentIndex + 1}/{deck.length}</span>
+                  <span className="kf-card-counter">{currentIndex + 2}/{deck.length}</span>
 
                   {isReversed ? (
                     <>
-                      <div className="kf-card-kanji">{currentCard?.character}</div>
-                      <div className="kf-back-readings">
-                        {currentCard?.onyomi && (
-                          <div className="kf-reading-line">
-                            <span className="kf-reading-badge on">音</span> {currentCard.onyomi}
-                          </div>
-                        )}
-                        {currentCard?.kunyomi && (
-                          <div className="kf-reading-line">
-                            <span className="kf-reading-badge kun">訓</span> {currentCard.kunyomi}
-                          </div>
-                        )}
+                      <div className="kf-card-meaning-front">{nextCardData?.meaning}</div>
+                      <div className="kf-card-hint">
+                        {nextCardData?.strokes} strokes
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="kf-back-meaning">{currentCard?.meaning}</div>
-                      <div className="kf-back-readings">
-                        {currentCard?.onyomi && (
-                          <div className="kf-reading-line">
-                            <span className="kf-reading-badge on">音</span> {currentCard.onyomi}
-                          </div>
-                        )}
-                        {currentCard?.kunyomi && (
-                          <div className="kf-reading-line">
-                            <span className="kf-reading-badge kun">訓</span> {currentCard.kunyomi}
-                          </div>
-                        )}
+                      <div className="kf-card-kanji">{nextCardData?.character}</div>
+                      <div className="kf-card-strokes-dots">
+                        {Array.from({ length: Math.min(nextCardData?.strokes || 0, 15) }).map((_, i) => (
+                          <span key={i} className="kf-stroke-dot"></span>
+                        ))}
                       </div>
-                      {currentCard?.example_word && (
-                        <div className="kf-back-example">
-                          <span className="kf-example-word">{currentCard.example_word}</span>
-                          <span className="kf-example-reading">{currentCard.example_reading}</span>
-                          <span className="kf-example-meaning">{currentCard.example_meaning}</span>
-                        </div>
-                      )}
                     </>
                   )}
-                  <span className="kf-tap-hint">tap to flip back</span>
-                </>
-              )}
+                  <span className="kf-tap-hint">tap to reveal</span>
+                </div>
+              </div>
+            </Motion.div>
+          )}
+
+          {/* Active Top Card */}
+          <Motion.div
+            className="kf-card-wrapper card-top"
+            style={{ x, rotate, opacity: cardOpacity }}
+            drag={!exitDir ? 'x' : false}
+            dragElastic={0.8}
+            dragConstraints={{ left: 0, right: 0 }}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onClick={handleCardClick}
+            role="button"
+            tabIndex={0}
+            aria-label="Flashcard - swipe left/right to score or tap to flip"
+          >
+            <div className={`kf-card-inner ${isFlipped ? 'flipped' : ''}`}>
+              {/* FRONT */}
+              <div className="kf-card-face kf-front">
+                <Motion.div className="swipe-bg-overlay" style={{ backgroundColor: bgOverlay }} />
+                <Motion.div className="swipe-stamp got" style={{ opacity: gotOpacity }}>
+                  ✓ 正解
+                </Motion.div>
+                <Motion.div className="swipe-stamp again" style={{ opacity: againOpacity }}>
+                  ✗ 間違い
+                </Motion.div>
+
+                <span className="kf-card-label">
+                  {isReversed ? 'Meaning' : 'Kanji'}
+                </span>
+                <span className="kf-card-counter">{currentIndex + 1}/{deck.length}</span>
+
+                {isReversed ? (
+                  <>
+                    <div className="kf-card-meaning-front">{currentCard?.meaning}</div>
+                    <div className="kf-card-hint">
+                      {currentCard?.strokes} strokes
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="kf-card-kanji">{currentCard?.character}</div>
+                    <div className="kf-card-strokes-dots">
+                      {Array.from({ length: Math.min(currentCard?.strokes || 0, 15) }).map((_, i) => (
+                        <span key={i} className="kf-stroke-dot"></span>
+                      ))}
+                    </div>
+                  </>
+                )}
+                <span className="kf-tap-hint">tap to reveal</span>
+              </div>
+
+              {/* BACK */}
+              <div className="kf-card-face kf-back">
+                <Motion.div className="swipe-bg-overlay" style={{ backgroundColor: bgOverlay }} />
+                <Motion.div className="swipe-stamp got" style={{ opacity: gotOpacity }}>
+                  ✓ 正解
+                </Motion.div>
+                <Motion.div className="swipe-stamp again" style={{ opacity: againOpacity }}>
+                  ✗ 間違い
+                </Motion.div>
+
+                <span className="kf-card-label">
+                  {isReversed ? 'Kanji' : 'Details'}
+                </span>
+                <span className="kf-card-counter">{currentIndex + 1}/{deck.length}</span>
+
+                {isReversed ? (
+                  <>
+                    <div className="kf-card-kanji">{currentCard?.character}</div>
+                    <div className="kf-back-readings">
+                      {currentCard?.onyomi && (
+                        <div className="kf-reading-line">
+                          <span className="kf-reading-badge on">音</span> {currentCard.onyomi}
+                        </div>
+                      )}
+                      {currentCard?.kunyomi && (
+                        <div className="kf-reading-line">
+                          <span className="kf-reading-badge kun">訓</span> {currentCard.kunyomi}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="kf-back-meaning">{currentCard?.meaning}</div>
+                    <div className="kf-back-readings">
+                      {currentCard?.onyomi && (
+                        <div className="kf-reading-line">
+                          <span className="kf-reading-badge on">音</span> {currentCard.onyomi}
+                        </div>
+                      )}
+                      {currentCard?.kunyomi && (
+                        <div className="kf-reading-line">
+                          <span className="kf-reading-badge kun">訓</span> {currentCard.kunyomi}
+                        </div>
+                      )}
+                    </div>
+                    {currentCard?.example_word && (
+                      <div className="kf-back-example">
+                        <span className="kf-example-word">{currentCard.example_word}</span>
+                        <span className="kf-example-reading">{currentCard.example_reading}</span>
+                        <span className="kf-example-meaning">{currentCard.example_meaning}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                <span className="kf-tap-hint">tap to flip back</span>
+              </div>
             </div>
-          </div>
+          </Motion.div>
         </div>
 
         {/* Navigation */}
@@ -372,10 +510,10 @@ export default function KanjiDashboard() {
 
         {/* Score buttons (only when flipped) */}
         <div className="score-row" style={{ display: isFlipped ? 'flex' : 'none' }}>
-          <button className="score-btn wrong" onClick={markIncorrect}>
+          <button className="score-btn wrong" onClick={() => triggerSwipe(-1)}>
             ✗ Again
           </button>
-          <button className="score-btn right" onClick={markCorrect}>
+          <button className="score-btn right" onClick={() => triggerSwipe(1)}>
             ✓ Got it
           </button>
         </div>

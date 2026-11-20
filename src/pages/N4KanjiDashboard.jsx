@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { motion as Motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { useN4Kanji } from '../hooks/useN4Kanji';
 import { useVoice } from '../contexts/VoiceContext';
 import '../index.css';
@@ -45,6 +46,31 @@ export default function N4KanjiDashboard() {
   // Local study deck
   const [deck, setDeck] = useState([]);
 
+  // Framer Motion gesture values for left/right swipe
+  const x = useMotionValue(0);
+  const rotate = useTransform(x, [-300, 300], [-12, 12]);
+  const cardOpacity = useTransform(x, [-500, -260, 0, 260, 500], [0.35, 0.95, 1, 0.95, 0.35]);
+
+  // Underneath card scale and opacity — visible during swipe
+  const nextCardScale = useTransform(x, [-260, 0, 260], [1, 0.95, 1]);
+  const nextCardOpacity = useTransform(x, [-260, 0, 260], [1, 0, 1]);
+
+  // Subtle background color tint when swiping right (green) or left (red)
+  const bgOverlay = useTransform(x, [-160, -25, 0, 25, 160], [
+    'rgba(239, 68, 68, 0.22)',   // red on left swipe
+    'rgba(239, 68, 68, 0.05)',
+    'rgba(0, 0, 0, 0)',
+    'rgba(34, 197, 94, 0.05)',
+    'rgba(34, 197, 94, 0.22)',   // green on right swipe
+  ]);
+
+  // Stamp badge opacity
+  const gotOpacity = useTransform(x, [25, 90], [0, 1]);
+  const againOpacity = useTransform(x, [-25, -90], [0, 1]);
+
+  const [exitDir, setExitDir] = useState(null);
+  const isDraggingRef = useRef(false);
+
   // Sync mode with URL if changed (e.g. browser back/forward)
   useEffect(() => {
     if (urlMode !== activeMode) {
@@ -62,7 +88,9 @@ export default function N4KanjiDashboard() {
     setStudyComplete(false);
     setMissedCards([]);
     missedCardsRef.current = [];
-  }, [rawDeck]);
+    x.jump(0);
+    setExitDir(null);
+  }, [rawDeck, x]);
 
   const handleModeChange = (newMode) => {
     setActiveMode(newMode);
@@ -79,6 +107,8 @@ export default function N4KanjiDashboard() {
     setStudyComplete(false);
     setMissedCards([]);
     missedCardsRef.current = [];
+    x.jump(0);
+    setExitDir(null);
   };
 
   const flipCard = useCallback(() => {
@@ -116,6 +146,50 @@ export default function N4KanjiDashboard() {
     nextCard();
   }, [nextCard, deck, currentIndex]);
 
+  const triggerSwipe = useCallback((dir) => {
+    if (exitDir) return;
+    setExitDir(dir);
+    const flyDistance = dir * (typeof window !== 'undefined' ? Math.max(window.innerWidth, 500) : 500);
+    animate(x, flyDistance, {
+      type: 'spring',
+      stiffness: 280,
+      damping: 24,
+      onComplete: () => {
+        x.jump(0);
+        setExitDir(null);
+        if (dir > 0) {
+          markCorrect();
+        } else {
+          markIncorrect();
+        }
+      },
+    });
+  }, [exitDir, x, markCorrect, markIncorrect]);
+
+  const handleDragStart = () => {
+    isDraggingRef.current = true;
+  };
+
+  const handleDragEnd = (_e, info) => {
+    const offset = info.offset.x;
+    const velocity = info.velocity.x;
+    if (offset > 70 || velocity > 350) {
+      triggerSwipe(1); // Swiped right: Got it / Correct
+    } else if (offset < -70 || velocity < -350) {
+      triggerSwipe(-1); // Swiped left: Again / Wrong
+    } else {
+      animate(x, 0, { type: 'spring', stiffness: 350, damping: 25 });
+    }
+    setTimeout(() => {
+      isDraggingRef.current = false;
+    }, 60);
+  };
+
+  const handleCardClick = () => {
+    if (isDraggingRef.current || exitDir) return;
+    flipCard();
+  };
+
   const shuffleDeck = useCallback(() => {
     setDeck((prev) => {
       const newDeck = [...prev];
@@ -130,7 +204,9 @@ export default function N4KanjiDashboard() {
     setCorrect(0);
     setIncorrect(0);
     setStudyComplete(false);
-  }, []);
+    x.jump(0);
+    setExitDir(null);
+  }, [x]);
 
   const resetStudy = useCallback(() => {
     setCurrentIndex(0);
@@ -140,7 +216,9 @@ export default function N4KanjiDashboard() {
     setStudyComplete(false);
     setMissedCards([]);
     missedCardsRef.current = [];
-  }, []);
+    x.jump(0);
+    setExitDir(null);
+  }, [x]);
 
   const studyMissed = useCallback(() => {
     const missed = missedCardsRef.current;
@@ -153,7 +231,9 @@ export default function N4KanjiDashboard() {
     setStudyComplete(false);
     setMissedCards([]);
     missedCardsRef.current = [];
-  }, []);
+    x.jump(0);
+    setExitDir(null);
+  }, [x]);
 
   const toggleReverse = useCallback(() => {
     setIsReversed((prev) => !prev);
@@ -188,18 +268,10 @@ export default function N4KanjiDashboard() {
         flipCard();
       } else if (e.key === 'ArrowRight') {
         e.preventDefault();
-        if (isFlipped) {
-          markCorrect();
-        } else {
-          nextCard();
-        }
+        triggerSwipe(1);
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault();
-        if (isFlipped) {
-          markIncorrect();
-        } else {
-          prevCard();
-        }
+        triggerSwipe(-1);
       } else if (e.key === 'a' || e.key === 'A') {
         e.preventDefault();
         const current = deck[currentIndex];
@@ -214,7 +286,7 @@ export default function N4KanjiDashboard() {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [view, isFlipped, studyComplete, isLoading, flipCard, nextCard, prevCard, markCorrect, markIncorrect, deck, currentIndex, activeMode]);
+  }, [view, isFlipped, studyComplete, isLoading, flipCard, triggerSwipe, deck, currentIndex, activeMode]);
 
   // Loading state
   if (isLoading) {
@@ -264,6 +336,7 @@ export default function N4KanjiDashboard() {
   }
 
   const currentCard = deck[currentIndex];
+  const nextCardData = deck[currentIndex + 1];
   const pct = deck.length > 1 ? currentIndex / (deck.length - 1) : 1;
   const circ = 2 * Math.PI * 22;
   const ringOffset = circ * (1 - pct);
@@ -546,7 +619,7 @@ export default function N4KanjiDashboard() {
             )}
           </div>
         ) : (
-          /* Active Flashcard */
+          /* Active Flashcard Stack with Left/Right Swipe */
           <>
             {/* Header info bar */}
             <div className="kf-header" style={{ width: '100%', maxWidth: '520px', margin: '0 auto 16px' }}>
@@ -577,213 +650,301 @@ export default function N4KanjiDashboard() {
               </div>
             </div>
 
-            <div
-              className="kf-card-wrapper"
-              onClick={flipCard}
-              role="button"
-              tabIndex={0}
-              aria-label="Flashcard - click or press Space to flip"
-            >
-              <div className={`kf-card-inner ${isFlipped ? 'flipped' : ''}`}>
-                {/* ── FRONT FACE ── */}
-                <div className="kf-card-face kf-front">
-                  <span className="kf-card-label">
-                    {activeMode === 'reading'
-                      ? isReversed ? 'Meaning · N4' : 'Kanji · N4'
-                      : isReversed ? 'Meaning · N4' : 'Kanji Vocab · N4'}
-                  </span>
-                  <span className="kf-card-counter">
-                    {currentCard?.lesson ? <span style={{ marginRight: '6px' }}>L{currentCard.lesson}</span> : null}
-                    {currentIndex + 1}/{deck.length}
-                  </span>
+            {/* Card Stack Container (underneath preview + top active swipeable card) */}
+            <div className="kf-stack-container">
+              {/* Underneath Card */}
+              {nextCardData && (
+                <Motion.div
+                  className="kf-card-wrapper card-underneath"
+                  style={{
+                    scale: nextCardScale,
+                    opacity: nextCardOpacity,
+                  }}
+                >
+                  <div className="kf-card-inner">
+                    <div className="kf-card-face kf-front">
+                      <span className="kf-card-label">
+                        {activeMode === 'reading'
+                          ? isReversed ? 'Meaning · N4' : 'Kanji · N4'
+                          : isReversed ? 'Meaning · N4' : 'Kanji Vocab · N4'}
+                      </span>
+                      <span className="kf-card-counter">
+                        {nextCardData?.lesson ? <span style={{ marginRight: '6px' }}>L{nextCardData.lesson}</span> : null}
+                        {currentIndex + 2}/{deck.length}
+                      </span>
 
-                  {/* KANJI READING MODE: FRONT */}
-                  {activeMode === 'reading' && (
-                    isReversed ? (
-                      <>
-                        <div className="kf-card-meaning-front">{currentCard?.meaning_en}</div>
-                        {currentCard?.strokes && (
-                          <div className="kf-card-hint">{currentCard.strokes} strokes</div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <div className="kf-card-kanji">{currentCard?.kanji}</div>
-                        {currentCard?.strokes && (
-                          <div className="kf-card-hint" style={{ marginTop: '8px' }}>
-                            {currentCard.strokes} strokes
+                      {activeMode === 'reading' ? (
+                        isReversed ? (
+                          <>
+                            <div className="kf-card-meaning-front">{nextCardData.meaning_en}</div>
+                            {nextCardData.strokes && <div className="kf-card-hint">{nextCardData.strokes} strokes</div>}
+                          </>
+                        ) : (
+                          <>
+                            <div className="kf-card-kanji">{nextCardData.kanji}</div>
+                            {nextCardData.strokes && <div className="kf-card-hint" style={{ marginTop: '8px' }}>{nextCardData.strokes} strokes</div>}
+                          </>
+                        )
+                      ) : (
+                        isReversed ? (
+                          <>
+                            <div className="kf-card-meaning-front">{nextCardData.meaning_en}</div>
+                            {nextCardData.kanji && <div className="kf-card-hint">Target Kanji: 【{nextCardData.kanji}】</div>}
+                          </>
+                        ) : (
+                          <>
+                            {nextCardData.kanji && (
+                              <div className="n4-target-kanji-pill">
+                                漢字: <span className="target-char">{nextCardData.kanji}</span>
+                              </div>
+                            )}
+                            <div className="kf-card-kanji" style={{ fontSize: '3rem', marginTop: '6px' }}>
+                              {nextCardData.word_kanji}
+                            </div>
+                          </>
+                        )
+                      )}
+                      <span className="kf-tap-hint">tap to reveal</span>
+                    </div>
+                  </div>
+                </Motion.div>
+              )}
+
+              {/* Top Active Card with Drag & Swipe */}
+              <Motion.div
+                className="kf-card-wrapper card-top"
+                style={{ x, rotate, opacity: cardOpacity }}
+                drag={!exitDir ? 'x' : false}
+                dragElastic={0.8}
+                dragConstraints={{ left: 0, right: 0 }}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                onClick={handleCardClick}
+                role="button"
+                tabIndex={0}
+                aria-label="Flashcard - swipe left/right to score or tap to flip"
+              >
+                <div className={`kf-card-inner ${isFlipped ? 'flipped' : ''}`}>
+                  {/* ── FRONT FACE ── */}
+                  <div className="kf-card-face kf-front">
+                    <Motion.div className="swipe-bg-overlay" style={{ backgroundColor: bgOverlay }} />
+                    <Motion.div className="swipe-stamp got" style={{ opacity: gotOpacity }}>
+                      ✓ 正解
+                    </Motion.div>
+                    <Motion.div className="swipe-stamp again" style={{ opacity: againOpacity }}>
+                      ✗ 間違い
+                    </Motion.div>
+
+                    <span className="kf-card-label">
+                      {activeMode === 'reading'
+                        ? isReversed ? 'Meaning · N4' : 'Kanji · N4'
+                        : isReversed ? 'Meaning · N4' : 'Kanji Vocab · N4'}
+                    </span>
+                    <span className="kf-card-counter">
+                      {currentCard?.lesson ? <span style={{ marginRight: '6px' }}>L{currentCard.lesson}</span> : null}
+                      {currentIndex + 1}/{deck.length}
+                    </span>
+
+                    {/* KANJI READING MODE: FRONT */}
+                    {activeMode === 'reading' && (
+                      isReversed ? (
+                        <>
+                          <div className="kf-card-meaning-front">{currentCard?.meaning_en}</div>
+                          {currentCard?.strokes && (
+                            <div className="kf-card-hint">{currentCard.strokes} strokes</div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <div className="kf-card-kanji">{currentCard?.kanji}</div>
+                          {currentCard?.strokes && (
+                            <div className="kf-card-hint" style={{ marginTop: '8px' }}>
+                              {currentCard.strokes} strokes
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            className={`card-audio-btn ${playingAudio ? 'playing' : ''}`}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playAudio(currentCard?.kunyomi || currentCard?.onyomi || currentCard?.kanji, e);
+                            }}
+                            title="Pronounce readings"
+                            aria-label="Play pronunciation"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                          </button>
+                        </>
+                      )
+                    )}
+
+                    {/* KANJI VOCAB MODE: FRONT */}
+                    {activeMode === 'vocab' && (
+                      isReversed ? (
+                        <>
+                          <div className="kf-card-meaning-front">{currentCard?.meaning_en}</div>
+                          {currentCard?.kanji && (
+                            <div className="kf-card-hint">Target Kanji: 【{currentCard.kanji}】</div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {currentCard?.kanji && (
+                            <div className="n4-target-kanji-pill">
+                              漢字: <span className="target-char">{currentCard.kanji}</span>
+                            </div>
+                          )}
+                          <div className="kf-card-kanji" style={{ fontSize: '3rem', marginTop: '6px' }}>
+                            {currentCard?.word_kanji}
                           </div>
-                        )}
-                        <button
-                          type="button"
-                          className={`card-audio-btn ${playingAudio ? 'playing' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playAudio(currentCard?.kunyomi || currentCard?.onyomi || currentCard?.kanji, e);
-                          }}
-                          title="Pronounce readings"
-                          aria-label="Play pronunciation"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                          </svg>
-                        </button>
-                      </>
-                    )
-                  )}
+                          <button
+                            type="button"
+                            className={`card-audio-btn ${playingAudio ? 'playing' : ''}`}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playAudio(currentCard?.reading_hiragana || currentCard?.word_kanji, e);
+                            }}
+                            title="Pronounce word"
+                            aria-label="Play pronunciation"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                          </button>
+                        </>
+                      )
+                    )}
 
-                  {/* KANJI VOCAB MODE: FRONT */}
-                  {activeMode === 'vocab' && (
-                    isReversed ? (
-                      <>
-                        <div className="kf-card-meaning-front">{currentCard?.meaning_en}</div>
-                        {currentCard?.kanji && (
-                          <div className="kf-card-hint">Target Kanji: 【{currentCard.kanji}】</div>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        {currentCard?.kanji && (
-                          <div className="n4-target-kanji-pill">
-                            漢字: <span className="target-char">{currentCard.kanji}</span>
+                    <span className="kf-tap-hint">tap to reveal</span>
+                  </div>
+
+                  {/* ── BACK FACE ── */}
+                  <div className="kf-card-face kf-back">
+                    <Motion.div className="swipe-bg-overlay" style={{ backgroundColor: bgOverlay }} />
+                    <Motion.div className="swipe-stamp got" style={{ opacity: gotOpacity }}>
+                      ✓ 正解
+                    </Motion.div>
+                    <Motion.div className="swipe-stamp again" style={{ opacity: againOpacity }}>
+                      ✗ 間違い
+                    </Motion.div>
+
+                    <span className="kf-card-label">
+                      {activeMode === 'reading'
+                        ? isReversed ? 'Kanji & Readings' : 'Meaning & Readings'
+                        : isReversed ? 'Kanji Word' : 'Reading & Meaning'}
+                    </span>
+                    <span className="kf-card-counter">
+                      {currentCard?.lesson ? <span style={{ marginRight: '6px' }}>L{currentCard.lesson}</span> : null}
+                      {currentIndex + 1}/{deck.length}
+                    </span>
+
+                    {/* KANJI READING MODE: BACK */}
+                    {activeMode === 'reading' && (
+                      isReversed ? (
+                        <>
+                          <div className="kf-card-kanji">{currentCard?.kanji}</div>
+                          <div className="kf-back-readings">
+                            {currentCard?.onyomi && (
+                              <div className="kf-reading-line">
+                                <span className="kf-reading-badge on">音</span> {currentCard.onyomi}
+                              </div>
+                            )}
+                            {currentCard?.kunyomi && (
+                              <div className="kf-reading-line">
+                                <span className="kf-reading-badge kun">訓</span> {currentCard.kunyomi}
+                              </div>
+                            )}
                           </div>
-                        )}
-                        <div className="kf-card-kanji" style={{ fontSize: '3rem', marginTop: '6px' }}>
-                          {currentCard?.word_kanji}
-                        </div>
-                        <button
-                          type="button"
-                          className={`card-audio-btn ${playingAudio ? 'playing' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playAudio(currentCard?.reading_hiragana || currentCard?.word_kanji, e);
-                          }}
-                          title="Pronounce word"
-                          aria-label="Play pronunciation"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                          </svg>
-                        </button>
-                      </>
-                    )
-                  )}
+                        </>
+                      ) : (
+                        <>
+                          <div className="kf-back-meaning">{currentCard?.meaning_en}</div>
+                          <div className="kf-back-readings">
+                            {currentCard?.onyomi && (
+                              <div className="kf-reading-line">
+                                <span className="kf-reading-badge on">音</span> {currentCard.onyomi}
+                              </div>
+                            )}
+                            {currentCard?.kunyomi && (
+                              <div className="kf-reading-line">
+                                <span className="kf-reading-badge kun">訓</span> {currentCard.kunyomi}
+                              </div>
+                            )}
+                          </div>
+                          <button
+                            type="button"
+                            className={`card-audio-btn ${playingAudio ? 'playing' : ''}`}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playAudio(currentCard?.kunyomi || currentCard?.onyomi || currentCard?.kanji, e);
+                            }}
+                            title="Pronounce readings"
+                            aria-label="Play pronunciation"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                          </button>
+                        </>
+                      )
+                    )}
 
-                  <span className="kf-tap-hint">tap to reveal</span>
+                    {/* KANJI VOCAB MODE: BACK */}
+                    {activeMode === 'vocab' && (
+                      isReversed ? (
+                        <>
+                          <div className="kf-card-kanji" style={{ fontSize: '3rem' }}>
+                            {currentCard?.word_kanji}
+                          </div>
+                          <div className="n4-vocab-reading" style={{ marginTop: '8px' }}>
+                            {currentCard?.reading_hiragana}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="n4-vocab-reading">
+                            {currentCard?.reading_hiragana}
+                          </div>
+                          <div className="kf-back-meaning" style={{ marginTop: '6px' }}>
+                            {currentCard?.meaning_en}
+                          </div>
+                          {currentCard?.kanji && (
+                            <div className="n4-vocab-kanji-ref">
+                              Target Kanji: <strong>{currentCard.kanji}</strong>
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            className={`card-audio-btn ${playingAudio ? 'playing' : ''}`}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playAudio(currentCard?.reading_hiragana || currentCard?.word_kanji, e);
+                            }}
+                            title="Pronounce word"
+                            aria-label="Play pronunciation"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                          </button>
+                        </>
+                      )
+                    )}
+
+                    <span className="kf-tap-hint">tap to flip back</span>
+                  </div>
                 </div>
-
-                {/* ── BACK FACE ── */}
-                <div className="kf-card-face kf-back">
-                  <span className="kf-card-label">
-                    {activeMode === 'reading'
-                      ? isReversed ? 'Kanji & Readings' : 'Meaning & Readings'
-                      : isReversed ? 'Kanji Word' : 'Reading & Meaning'}
-                  </span>
-                  <span className="kf-card-counter">
-                    {currentCard?.lesson ? <span style={{ marginRight: '6px' }}>L{currentCard.lesson}</span> : null}
-                    {currentIndex + 1}/{deck.length}
-                  </span>
-
-                  {/* KANJI READING MODE: BACK */}
-                  {activeMode === 'reading' && (
-                    isReversed ? (
-                      <>
-                        <div className="kf-card-kanji">{currentCard?.kanji}</div>
-                        <div className="kf-back-readings">
-                          {currentCard?.onyomi && (
-                            <div className="kf-reading-line">
-                              <span className="kf-reading-badge on">音</span> {currentCard.onyomi}
-                            </div>
-                          )}
-                          {currentCard?.kunyomi && (
-                            <div className="kf-reading-line">
-                              <span className="kf-reading-badge kun">訓</span> {currentCard.kunyomi}
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="kf-back-meaning">{currentCard?.meaning_en}</div>
-                        <div className="kf-back-readings">
-                          {currentCard?.onyomi && (
-                            <div className="kf-reading-line">
-                              <span className="kf-reading-badge on">音</span> {currentCard.onyomi}
-                            </div>
-                          )}
-                          {currentCard?.kunyomi && (
-                            <div className="kf-reading-line">
-                              <span className="kf-reading-badge kun">訓</span> {currentCard.kunyomi}
-                            </div>
-                          )}
-                        </div>
-                        <button
-                          type="button"
-                          className={`card-audio-btn ${playingAudio ? 'playing' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playAudio(currentCard?.kunyomi || currentCard?.onyomi || currentCard?.kanji, e);
-                          }}
-                          title="Pronounce readings"
-                          aria-label="Play pronunciation"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                          </svg>
-                        </button>
-                      </>
-                    )
-                  )}
-
-                  {/* KANJI VOCAB MODE: BACK */}
-                  {activeMode === 'vocab' && (
-                    isReversed ? (
-                      <>
-                        <div className="kf-card-kanji" style={{ fontSize: '3rem' }}>
-                          {currentCard?.word_kanji}
-                        </div>
-                        <div className="n4-vocab-reading" style={{ marginTop: '8px' }}>
-                          {currentCard?.reading_hiragana}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="n4-vocab-reading">
-                          {currentCard?.reading_hiragana}
-                        </div>
-                        <div className="kf-back-meaning" style={{ marginTop: '6px' }}>
-                          {currentCard?.meaning_en}
-                        </div>
-                        {currentCard?.kanji && (
-                          <div className="n4-vocab-kanji-ref">
-                            Target Kanji: <strong>{currentCard.kanji}</strong>
-                          </div>
-                        )}
-                        <button
-                          type="button"
-                          className={`card-audio-btn ${playingAudio ? 'playing' : ''}`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playAudio(currentCard?.reading_hiragana || currentCard?.word_kanji, e);
-                          }}
-                          title="Pronounce word"
-                          aria-label="Play pronunciation"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                          </svg>
-                        </button>
-                      </>
-                    )
-                  )}
-
-                  <span className="kf-tap-hint">tap to flip back</span>
-                </div>
-              </div>
+              </Motion.div>
             </div>
 
             {/* Navigation buttons */}
@@ -833,14 +994,14 @@ export default function N4KanjiDashboard() {
               </button>
             </div>
 
-            {/* Score buttons (shown when flipped) */}
+            {/* Score buttons (shown when flipped or directly swiped) */}
             <div className="score-row" style={{ display: isFlipped ? 'flex' : 'none' }}>
               <button
                 type="button"
                 className="score-btn wrong"
                 onClick={(e) => {
                   e.stopPropagation();
-                  markIncorrect();
+                  triggerSwipe(-1);
                 }}
               >
                 ✗ Again
@@ -850,7 +1011,7 @@ export default function N4KanjiDashboard() {
                 className="score-btn right"
                 onClick={(e) => {
                   e.stopPropagation();
-                  markCorrect();
+                  triggerSwipe(1);
                 }}
               >
                 ✓ Got it
